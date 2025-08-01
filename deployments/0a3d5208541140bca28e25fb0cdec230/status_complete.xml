@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<deployment>
+  <id>0a3d5208541140bca28e25fb0cdec230</id>
+  <author>N/A</author>
+  <deployer>ZipDeploy</deployer>
+  <authorEmail>N/A</authorEmail>
+  <message>Created via a push deployment</message>
+  <progress></progress>
+  <status>Success</status>
+  <statusText></statusText>
+  <lastSuccessEndTime>2025-07-31T21:50:55.9602196Z</lastSuccessEndTime>
+  <receivedTime>2025-07-31T21:50:53.5539571Z</receivedTime>
+  <startTime>2025-07-31T21:50:54.3352073Z</startTime>
+  <endTime>2025-07-31T21:50:55.9602196Z</endTime>
+  <complete>True</complete>
+  <is_temp>False</is_temp>
+  <is_readonly>True</is_readonly>
+  <project_type>Run-From-Zip</project_type>
+  <vsproject_id></vsproject_id>
+</deployment>

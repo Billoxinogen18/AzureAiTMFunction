@@ -1,0 +1,38 @@
+<step title="BackgroundTrace" date="2025-07-31T19:39:10.173" instance="8b0658" url="/api/zipdeploy" method="POST" >
+  <step title="Updating shutdown sentinel last write time" date="2025-07-31T19:39:10.219" SemaphoreCount="7" /><!-- duration: 16ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-07-31T19:39:10.266" /><!-- duration: 16ms -->
+  <step title="Creating temporary deployment" date="2025-07-31T19:39:10.329" /><!-- duration: 156ms -->
+  <step title="Performing fetch based deployment" date="2025-07-31T19:39:10.516" >
+    <step title="Fetching changes." date="2025-07-31T19:39:10.735" /><!-- duration: 63ms -->
+    <step title="Starting LocalZipHandler" date="2025-07-31T19:39:10.829" /><!-- duration: 31ms -->
+    <step title="Starting ExtractTriggers" date="2025-07-31T19:39:10.891" /><!-- duration: 31ms -->
+    <step title="Before sending BuildRequestReceived status to /api/updatedeploystatus" date="2025-07-31T19:39:11.016" /><!-- duration: 16ms -->
+    <step title="DeploymentManager.Deploy(id:a88eca37731c47f191e52a684597f3d2)" date="2025-07-31T19:39:11.063" >
+      <step title="Collecting changeset information" date="2025-07-31T19:39:11.126" /><!-- duration: 203ms -->
+      <step title="Updating submodules" date="2025-07-31T19:39:11.360" >
+        <step title="Updating submodules." date="2025-07-31T19:39:11.563" /><!-- duration: 47ms -->
+      </step><!-- duration: 281ms -->
+      <step title="Preparing deployment for commit id &apos;a88eca3773&apos;." date="2025-07-31T19:39:11.907" /><!-- duration: 31ms -->
+      <step title="Determining deployment builder" date="2025-07-31T19:39:12.173" >
+        <step title="Builder is RunFromZipSiteBuilder" date="2025-07-31T19:39:12.204" /><!-- duration: 16ms -->
+      </step><!-- duration: 94ms -->
+      <step title="Copying SSH keys" date="2025-07-31T19:39:12.391" /><!-- duration: 31ms -->
+      <step title="Building" date="2025-07-31T19:39:12.516" >
+        <step title="Skipping build. Project type: Run-From-Zip" date="2025-07-31T19:39:12.751" /><!-- duration: 31ms -->
+        <step title="Skipping post build. Project type: Run-From-Zip" date="2025-07-31T19:39:13.001" /><!-- duration: 31ms -->
+        <step title="Triggering recycle (preview mode disabled)." date="2025-07-31T19:39:13.313" /><!-- duration: 16ms -->
+        <step title="Ignoring FS watcher based recycle request as this is a classic Windows app." date="2025-07-31T19:39:13.360" /><!-- duration: 16ms -->
+        <step title="Deployment successful. DEPLOYMENTINFO: deploymentPath = Functions App ZipDeploy. Run from package. Ignore remote build., deployer = az_cli_functions, os = windows, sku = Dynamic, language = node, siteName = aitm-func-1753463791, slotName = Production, siteHostName = aitm-func-1753463791.azurewebsites.net, deploymentStatus = Success" date="2025-07-31T19:39:13.594" /><!-- duration: 31ms -->
+        <step title="Purge deployment items" date="2025-07-31T19:39:14.438" >
+          <step title="Remove 11602cb09, Success, received at 7/31/2025 6:18:13 PM" date="2025-07-31T19:39:14.876" /><!-- duration: 31ms -->
+        </step><!-- duration: 484ms -->
+      </step><!-- duration: 2531ms -->
+    </step><!-- duration: 4031ms -->
+    <step title="Cleaning up temp files" date="2025-07-31T19:39:15.126" /><!-- duration: 16ms -->
+    <step title="Updating C:\home\data\SitePackages\packagename.txt with deployment 20250731193909.zip" date="2025-07-31T19:39:15.173" /><!-- duration: 312ms -->
+    <step title="Begin HttpPost https://aitm-func-1753463791.scm.azurewebsites.net/operations/settriggers, x-ms-request-id: f95cdf06-6e45-11f0-b512-822b383dbcd0" date="2025-07-31T19:39:15.532" /><!-- duration: 31ms -->
+    <step title="End HttpPost, status: OK" date="2025-07-31T19:39:15.751" /><!-- duration: 16ms -->
+    <step title="Scheduling background sync triggers after delay" date="2025-07-31T19:39:15.798" /><!-- duration: 47ms -->
+  </step><!-- duration: 5594ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-07-31T19:39:16.141" /><!-- duration: 31ms -->
+</step><!-- duration: 6047ms -->

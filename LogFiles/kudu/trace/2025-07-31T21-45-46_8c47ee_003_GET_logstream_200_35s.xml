@@ -1,0 +1,9 @@
+<step title="Incoming Request" date="2025-07-31T21:45:46.343" instance="8c47ee" url="/logstream" method="GET" type="request" pid="2452,2,7" Accept-Encoding="identity" Authorization="Bas..." Host="aitm-func-1753463791.scm.azurewebsites.net" User-Agent="AZURECLI/2.75.0 (HOMEBREW)" x-ms-client-request-id="aa9fab3e-6e57-11f0-8fea-ce6f0ac0b275" X-ARR-LOG-ID="aa9fab3e-6e57-11f0-8fea-ce6f0ac0b275" CLIENT-IP="197.237.93.179:50450" X-SITE-DEPLOYMENT-ID="aitm-func-1753463791" WAS-DEFAULT-HOSTNAME="aitm-func-1753463791.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/logstream" >
+  <step title="Cleanup Xml Logs" date="2025-07-31T21:45:46.374" /><!-- duration: 31ms -->
+  <step title="LogStreamHandler.BeginProcessRequest" date="2025-07-31T21:45:46.437" >
+    <step title="LockFile &apos;C:\home\site\locks\hooks.lock&apos; acquired" date="2025-07-31T21:45:46.671" /><!-- duration: 16ms -->
+    <step title="LockFile &apos;C:\home\site\locks\hooks.lock&apos; released" date="2025-07-31T21:45:46.827" /><!-- duration: 31ms -->
+  </step><!-- duration: 531ms -->
+  <step title="LogStreamHandler.EndProcessRequest" date="2025-07-31T21:46:21.258" /><!-- duration: 47ms -->
+  <step title="Outgoing response" date="2025-07-31T21:46:21.320" type="response" statusCode="200" statusText="OK" Server="Microsoft-IIS/10.0" Cache-Control="private" X-AspNet-Version="4.0.30319" Content-Type="text/plain; charset=utf-8" /><!-- duration: 78ms -->
+</step><!-- duration: 35071ms -->

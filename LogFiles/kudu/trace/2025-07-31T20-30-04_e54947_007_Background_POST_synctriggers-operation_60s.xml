@@ -1,0 +1,12 @@
+<step title="BackgroundTrace" date="2025-07-31T20:30:04.942" instance="e54947" url="synctriggers-operation" method="POST" >
+  <step title="Updating shutdown sentinel last write time" date="2025-07-31T20:30:04.973" SemaphoreCount="5" /><!-- duration: 16ms -->
+  <step title="Delaying &apos;00:01:00&apos; for Functions site to restart." date="2025-07-31T20:30:05.004" /><!-- duration: 16ms -->
+  <step title="Begin HttpPost https://aitm-func-1753463791.azurewebsites.net/admin/host/synctriggers, x-ms-request-id: 4e5f41c7-7dda-42a9-8d79-28102ef5556b" date="2025-07-31T20:30:16.690" /><!-- duration: 16ms -->
+  <step title="End HttpPost, status: OK" date="2025-07-31T20:30:16.893" /><!-- duration: 31ms -->
+  <step title="Syncing function triggers by calling the functions runtime site successful." date="2025-07-31T20:30:16.956" /><!-- duration: 16ms -->
+  <step title="Begin HttpPost https://aitm-func-1753463791.scm.azurewebsites.net/api/app/restart, x-ms-request-id: 42b1bf26-6e4d-11f0-872e-822b383dbcd0" date="2025-07-31T20:31:04.169" /><!-- duration: 31ms -->
+  <step title="End HttpPost, status: OK" date="2025-07-31T20:31:04.294" /><!-- duration: 78ms -->
+  <step title="Begin HttpPost https://aitm-func-1753463791.azurewebsites.net/admin/host/synctriggers, x-ms-request-id: 9781d713-51c2-4eb4-ab27-8c97366038e1" date="2025-07-31T20:31:05.059" /><!-- duration: 31ms -->
+  <step title="End HttpPost, status: OK" date="2025-07-31T20:31:05.278" /><!-- duration: 16ms -->
+  <step title="Syncing function triggers by calling the functions runtime site successful." date="2025-07-31T20:31:05.325" /><!-- duration: 16ms -->
+</step><!-- duration: 60430ms -->

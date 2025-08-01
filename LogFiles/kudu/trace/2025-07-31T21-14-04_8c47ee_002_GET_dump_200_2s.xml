@@ -1,0 +1,19 @@
+<step title="Incoming Request" date="2025-07-31T21:14:04.222" instance="8c47ee" url="/dump" method="GET" type="request" pid="6824,2,9" Accept-Encoding="identity" Authorization="Bas..." Host="aitm-func-1753463791.scm.azurewebsites.net" User-Agent="AZURECLI/2.75.0 (DEB)" x-ms-client-request-id="4700a76c-6e53-11f0-814b-822b383dbcd0" X-ARR-LOG-ID="4700a76c-6e53-11f0-814b-822b383dbcd0" CLIENT-IP="34.224.177.102:26916" X-SITE-DEPLOYMENT-ID="aitm-func-1753463791" WAS-DEFAULT-HOSTNAME="aitm-func-1753463791.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/dump" >
+  <step title="ZipStreamContent.OnZip" date="2025-07-31T21:14:04.425" >
+    <step title="Error occurred" date="2025-07-31T21:14:05.957" type="error" text="The remote host closed the connection. The error code is 0x800704CD." stackTrace="   at System.Web.Hosting.IIS7WorkerRequest.RaiseCommunicationError(Int32 result, Boolean throwOnDisconnect)
+   at System.Web.Hosting.IIS7WorkerRequest.ExplicitFlush()
+   at System.Web.HttpResponse.Flush(Boolean finalFlush, Boolean async)
+   at System.Web.HttpResponse.Flush()
+   at System.Web.HttpWriter.WriteFromStream(Byte[] data, Int32 offset, Int32 size)
+   at System.Web.HttpResponseStream.Write(Byte[] buffer, Int32 offset, Int32 count)
+   at System.Net.Http.Internal.DelegatingStream.Write(Byte[] buffer, Int32 offset, Int32 count)
+   at Kudu.Services.Infrastructure.ZipStreamContent.StreamWrapper.Write(Byte[] buffer, Int32 offset, Int32 count) in C:\__w\1\s\Kudu.Services\Infrastructure\ZipStreamContent.cs:line 58
+   at System.IO.BinaryWriter.Write(UInt32 value)
+   at System.IO.Compression.ZipArchiveEntry.WriteCentralDirectoryFileHeader()
+   at System.IO.Compression.ZipArchive.WriteFile()
+   at System.IO.Compression.ZipArchive.Dispose(Boolean disposing)
+   at System.IO.Compression.ZipArchive.Dispose()
+   at Kudu.Services.Infrastructure.ZipStreamContent.&lt;&gt;c__DisplayClass0_0.&lt;Create&gt;b__0(Stream outputStream, HttpContent httpContent, TransportContext transportContext) in C:\__w\1\s\Kudu.Services\Infrastructure\ZipStreamContent.cs:line 24" /><!-- duration: 31ms -->
+  </step><!-- duration: 1609ms -->
+  <step title="Outgoing response" date="2025-07-31T21:14:06.066" type="response" statusCode="200" statusText="OK" Server="Microsoft-IIS/10.0" x-ms-request-id="4700a76c-6e53-11f0-814b-822b383dbcd0" Content-Disposition="attachment; filename=dump-07-31-21-14-04.zip" Cache-Control="no-cache" X-AspNet-Version="4.0.30319" Content-Type="application/zip" Pragma="no-cache" Expires="-1" /><!-- duration: 16ms -->
+</step><!-- duration: 1891ms -->

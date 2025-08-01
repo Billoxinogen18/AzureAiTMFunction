@@ -1,0 +1,17 @@
+<step title="Incoming Request" date="2025-07-31T19:45:33.147" instance="8b0658" url="/api/zipdeploy?isAsync=true&amp;Deployer=az_cli_functions" method="POST" type="request" pid="7032,2,9" Cache-Control="no-cache" Content-Length="1287598" Content-Type="application/octet-stream" Accept="*/*" Accept-Encoding="gzip, deflate" Authorization="Bas..." Host="aitm-func-1753463791.scm.azurewebsites.net" User-Agent="AZURECLI/2.75.0 (DEB)" x-ms-client-request-id="de4344a2-6e46-11f0-b036-822b383dbcd0" X-ARR-LOG-ID="de4344a2-6e46-11f0-b036-822b383dbcd0" CLIENT-IP="54.85.64.19:5296" X-SITE-DEPLOYMENT-ID="aitm-func-1753463791" WAS-DEFAULT-HOSTNAME="aitm-func-1753463791.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/zipdeploy?isAsync=true&amp;Deployer=az_cli_functions" >
+  <step title="ZipPushDeploy" date="2025-07-31T19:45:33.319" >
+    <step title="Functions App ZipDeploy. Run from package. Ignore remote build." date="2025-07-31T19:45:33.366" /><!-- duration: 31ms -->
+    <step title="Starting PushDeployAsync" date="2025-07-31T19:45:33.413" /><!-- duration: 47ms -->
+    <step title="Updating shutdown sentinel last write time" date="2025-07-31T19:45:33.647" SemaphoreCount="7" /><!-- duration: 31ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-07-31T19:45:33.710" /><!-- duration: 16ms -->
+    <step title="Deleting outdated zip file C:\home\data\SitePackages\20250731192425.zip" date="2025-07-31T19:45:33.772" /><!-- duration: 47ms -->
+    <step title="Saving request content to C:\home\data\SitePackages\20250731194533.zip" date="2025-07-31T19:45:33.850" >
+      <step title="Total 1,287,598 bytes written to C:\home\data\SitePackages\20250731194533.zip" date="2025-07-31T19:45:33.944" /><!-- duration: 16ms -->
+    </step><!-- duration: 266ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-07-31T19:45:34.148" /><!-- duration: 31ms -->
+    <step title="Deleting shutdown sentinel file" date="2025-07-31T19:45:34.257" SemaphoreCount="8" /><!-- duration: 47ms -->
+    <step title="Starting FetchDeploy" date="2025-07-31T19:45:34.335" /><!-- duration: 31ms -->
+    <step title="Start deployment in the background" date="2025-07-31T19:45:34.397" /><!-- duration: 453ms -->
+  </step><!-- duration: 1703ms -->
+  <step title="Outgoing response" date="2025-07-31T19:45:35.085" type="response" statusCode="202" statusText="Accepted" Server="Microsoft-IIS/10.0" x-ms-request-id="de4344a2-6e46-11f0-b036-822b383dbcd0" Retry-After="30" Cache-Control="private" X-AspNet-Version="4.0.30319" Location="https://aitm-func-1753463791.scm.azurewebsites.net/api/deployments/latest?deployer=az_cli_functions&amp;time=2025-07-31_19-45-35Z" /><!-- duration: 31ms -->
+</step><!-- duration: 2000ms -->

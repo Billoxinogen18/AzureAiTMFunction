@@ -1,0 +1,6 @@
+<step title="BackgroundTrace" date="2025-08-01T06:36:23.803" instance="fa2c8d" url="synctriggers-operation" method="POST" >
+  <step title="Updating shutdown sentinel last write time" date="2025-08-01T06:36:23.834" SemaphoreCount="6" /><!-- duration: 31ms -->
+  <step title="Delaying &apos;00:01:00&apos; for Functions site to restart." date="2025-08-01T06:36:23.897" /><!-- duration: 31ms -->
+  <step title="Begin HttpPost https://aitm-func-1753463791.scm.azurewebsites.net/api/app/restart, x-ms-request-id: d875c3c8-6ea1-11f0-acc2-822b383dbcd0" date="2025-08-01T06:36:33.219" /><!-- duration: 31ms -->
+  <step title="End HttpPost, status: OK" date="2025-08-01T06:36:33.328" /><!-- duration: 31ms -->
+</step><!-- duration: 60989ms -->

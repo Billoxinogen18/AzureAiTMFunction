@@ -1,0 +1,38 @@
+<step title="BackgroundTrace" date="2025-07-31T19:31:44.838" instance="8b0658" url="/api/zipdeploy" method="POST" >
+  <step title="Updating shutdown sentinel last write time" date="2025-07-31T19:31:44.869" SemaphoreCount="7" /><!-- duration: 31ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-07-31T19:31:44.916" /><!-- duration: 31ms -->
+  <step title="Creating temporary deployment" date="2025-07-31T19:31:44.979" /><!-- duration: 172ms -->
+  <step title="Performing fetch based deployment" date="2025-07-31T19:31:45.182" >
+    <step title="Fetching changes." date="2025-07-31T19:31:45.416" /><!-- duration: 31ms -->
+    <step title="Starting LocalZipHandler" date="2025-07-31T19:31:45.479" /><!-- duration: 31ms -->
+    <step title="Starting ExtractTriggers" date="2025-07-31T19:31:45.541" /><!-- duration: 31ms -->
+    <step title="Before sending BuildRequestReceived status to /api/updatedeploystatus" date="2025-07-31T19:31:45.682" /><!-- duration: 47ms -->
+    <step title="DeploymentManager.Deploy(id:345e63150e1a469482165af6098304ad)" date="2025-07-31T19:31:45.760" >
+      <step title="Collecting changeset information" date="2025-07-31T19:31:45.869" /><!-- duration: 188ms -->
+      <step title="Updating submodules" date="2025-07-31T19:31:46.088" >
+        <step title="Updating submodules." date="2025-07-31T19:31:46.354" /><!-- duration: 16ms -->
+      </step><!-- duration: 312ms -->
+      <step title="Preparing deployment for commit id &apos;345e63150e&apos;." date="2025-07-31T19:31:46.760" /><!-- duration: 16ms -->
+      <step title="Determining deployment builder" date="2025-07-31T19:31:46.979" >
+        <step title="Builder is RunFromZipSiteBuilder" date="2025-07-31T19:31:47.010" /><!-- duration: 16ms -->
+      </step><!-- duration: 78ms -->
+      <step title="Copying SSH keys" date="2025-07-31T19:31:47.166" /><!-- duration: 63ms -->
+      <step title="Building" date="2025-07-31T19:31:47.260" >
+        <step title="Skipping build. Project type: Run-From-Zip" date="2025-07-31T19:31:47.510" /><!-- duration: 31ms -->
+        <step title="Skipping post build. Project type: Run-From-Zip" date="2025-07-31T19:31:47.791" /><!-- duration: 31ms -->
+        <step title="Triggering recycle (preview mode disabled)." date="2025-07-31T19:31:48.057" /><!-- duration: 31ms -->
+        <step title="Ignoring FS watcher based recycle request as this is a classic Windows app." date="2025-07-31T19:31:48.119" /><!-- duration: 31ms -->
+        <step title="Deployment successful. DEPLOYMENTINFO: deploymentPath = Functions App ZipDeploy. Run from package. Ignore remote build., deployer = az_cli_functions, os = windows, sku = Dynamic, language = node, siteName = aitm-func-1753463791, slotName = Production, siteHostName = aitm-func-1753463791.azurewebsites.net, deploymentStatus = Success" date="2025-07-31T19:31:48.369" /><!-- duration: 31ms -->
+        <step title="Purge deployment items" date="2025-07-31T19:31:49.370" >
+          <step title="Remove a35e9e6ee, Success, received at 7/31/2025 6:11:00 PM" date="2025-07-31T19:31:49.463" /><!-- duration: 31ms -->
+        </step><!-- duration: 141ms -->
+      </step><!-- duration: 2344ms -->
+    </step><!-- duration: 3875ms -->
+    <step title="Cleaning up temp files" date="2025-07-31T19:31:49.667" /><!-- duration: 16ms -->
+    <step title="Updating C:\home\data\SitePackages\packagename.txt with deployment 20250731193143.zip" date="2025-07-31T19:31:49.713" /><!-- duration: 78ms -->
+    <step title="Begin HttpPost https://aitm-func-1753463791.scm.azurewebsites.net/operations/settriggers, x-ms-request-id: f4b22fca-6e44-11f0-9c81-822b383dbcd0" date="2025-07-31T19:31:49.838" /><!-- duration: 16ms -->
+    <step title="End HttpPost, status: OK" date="2025-07-31T19:31:50.063" /><!-- duration: 25ms -->
+    <step title="Scheduling background sync triggers after delay" date="2025-07-31T19:31:50.121" /><!-- duration: 30ms -->
+  </step><!-- duration: 5204ms -->
+  <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-07-31T19:31:50.417" /><!-- duration: 31ms -->
+</step><!-- duration: 5657ms -->
