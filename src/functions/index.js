@@ -1,6 +1,6 @@
 const { app } = require('@azure/functions');
 
-// Minimal test function
+// Simple test function
 app.http('test', {
     methods: ['GET'],
     authLevel: 'anonymous',
