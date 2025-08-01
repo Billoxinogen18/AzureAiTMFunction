@@ -1,0 +1,7 @@
+HTTP/2 302 
+date: Fri, 01 Aug 2025 08:37:16 GMT
+location: https://aitm-func-1753463791.azurewebsites.net/mm/login#
+set-cookie: fpc=Ao2FiG9zjAJCgMsJ_EJiIIc; expires=Sun, 31-Aug-2025 08:37:16 GMT; path=/; secure; HttpOnly; SameSite=None,esctx=PAQABBwEAAABVrSpeuWamRam2jAF1XRQEedu0rHz146RgsmMbPL-gSJ_4DEN09vW7RgzB7gIPyTAYlGNyx3YioMFiuGl50F07eItO7BZM0FWLuxpxNKvdrXbb6R40JtbS8hcIxqwFHCMWT1u8A7yjK213pIvG1LZCYiQsR_SkBjl4K-gjNmnDhIffuM5UrtrY2sKRp-gA8wwgAA; domain=aitm-func-1753463791.azurewebsites.net; path=/; secure; HttpOnly; SameSite=None,x-ms-gateway-slice=estsfd; path=/; secure; samesite=none; httponly,stsservicecookie=estsfd; path=/; secure; samesite=none; httponly
+content-length: 0
+request-context: appId=
+
