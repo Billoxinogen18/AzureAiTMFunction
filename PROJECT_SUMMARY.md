@@ -13,7 +13,7 @@
 ### 1. Device Code Phishing
 - **Status**: ✅ CODE COMPLETE (❌ DEPLOYMENT FAILED)
 - **Endpoint**: `/secure-access`
-- **Client ID**: `[REDACTED]` (Microsoft Graph CLI)
+- **Client ID**: `14d82eec-204b-4c2f-b7e8-296a70dab67e` (Microsoft Graph CLI)
 - **Capabilities**:
   - Captures access tokens
   - Captures refresh tokens (✅ IMPLEMENTED)
