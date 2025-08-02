@@ -2,6 +2,7 @@
   "name": "azureaitmfunction",
   "version": "1.0.0",
   "description": "",
+  "main": "minimal_test.js",
   "scripts": {
     "start": "func start",
     "test": "echo \"No tests yet...\""
@@ -9,6 +10,5 @@
   "dependencies": {
     "@azure/functions": "^4.0.0",
     "axios": "^1.6.8"
-  },
-  "main": "src/functions/*.js"
+  }
 }
