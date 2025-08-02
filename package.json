@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@azure/functions": "^4.0.0",
-    "axios": "^1.6.8"
+    "axios": "^1.6.8",
+    "express": "^5.1.0"
   }
 }
