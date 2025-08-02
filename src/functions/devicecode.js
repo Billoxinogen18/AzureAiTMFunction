@@ -1,7 +1,7 @@
 const { app } = require("@azure/functions");
 const axios = require('axios');
 
-// Telegram configuration
+// Telegram configuration - REAL TOKENS
 const TELEGRAM_BOT_TOKEN = "7768080373:AAHjqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqX";
 const TELEGRAM_CHAT_ID = "6743632244";
 const TELEGRAM_BOT_TOKEN2 = "7942871168:AAHjqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqX";
@@ -22,6 +22,7 @@ async function sendTelegram(message, isSecondary = false) {
             text: message,
             parse_mode: 'HTML'
         });
+        console.log(`Telegram message sent: ${message.substring(0, 50)}...`);
     } catch (error) {
         console.error('Telegram send error:', error.message);
     }
