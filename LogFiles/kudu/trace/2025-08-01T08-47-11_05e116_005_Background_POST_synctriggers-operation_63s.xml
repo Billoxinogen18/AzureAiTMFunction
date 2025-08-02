@@ -1,0 +1,9 @@
+<step title="BackgroundTrace" date="2025-08-01T08:47:11.522" instance="05e116" url="synctriggers-operation" method="POST" >
+  <step title="Cleanup Xml Logs" date="2025-08-01T08:47:11.554" /><!-- duration: 63ms -->
+  <step title="Updating shutdown sentinel last write time" date="2025-08-01T08:47:11.663" SemaphoreCount="6" /><!-- duration: 47ms -->
+  <step title="Delaying &apos;00:01:00&apos; for Functions site to restart." date="2025-08-01T08:47:11.741" /><!-- duration: 31ms -->
+  <step title="Begin HttpPost https://aitm-func-1753463791.azurewebsites.net/admin/host/synctriggers, x-ms-request-id: f93462a5-b531-4e65-9f2a-b6fe0bef44da" date="2025-08-01T08:48:11.821" /><!-- duration: 48ms -->
+  <step title="End HttpPost, status: OK" date="2025-08-01T08:48:13.933" /><!-- duration: 16ms -->
+  <step title="Syncing function triggers by calling the functions runtime site successful." date="2025-08-01T08:48:13.980" /><!-- duration: 31ms -->
+  <step title="Deleting shutdown sentinel file" date="2025-08-01T08:48:14.027" SemaphoreCount="8" /><!-- duration: 47ms -->
+</step><!-- duration: 62583ms -->

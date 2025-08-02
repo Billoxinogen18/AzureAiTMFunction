@@ -1,0 +1,119 @@
+<step title="Incoming Request" date="2025-08-01T18:39:26.684" instance="59dc7f" url="/api/zipdeploy" method="POST" type="request" pid="424,2,7" Connection="Keep-Alive" Content-Length="12017694" Content-Type="application/zip" Authorization="Bea..." Host="aitm-func-1753463791.scm.azurewebsites.net" If-Match="*" User-Agent="functions-core-tools/4.1.0" X-ARR-LOG-ID="4cbbc307-e27d-4dab-9721-463a66ae1af4" CLIENT-IP="184.72.222.69:51937" X-SITE-DEPLOYMENT-ID="aitm-func-1753463791" WAS-DEFAULT-HOSTNAME="aitm-func-1753463791.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/zipdeploy" X-MS-COLDSTART="1" >
+  <step title="ZipPushDeploy" date="2025-08-01T18:39:27.170" >
+    <step title="Functions App ZipDeploy. Extract zip. Remote build. " date="2025-08-01T18:39:27.216" /><!-- duration: 16ms -->
+    <step title="Starting PushDeployAsync" date="2025-08-01T18:39:27.263" /><!-- duration: 32ms -->
+    <step title="Updating shutdown sentinel last write time" date="2025-08-01T18:39:27.451" SemaphoreCount="7" /><!-- duration: 16ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-08-01T18:39:27.498" /><!-- duration: 16ms -->
+    <step title="Saving request content to C:\local\Temp\zipdeploy\ngh1bpf2.zip" date="2025-08-01T18:39:27.545" >
+      <step title="Total 12,017,694 bytes written to C:\local\Temp\zipdeploy\ngh1bpf2.zip" date="2025-08-01T18:39:27.670" /><!-- duration: 16ms -->
+    </step><!-- duration: 156ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-08-01T18:39:27.748" /><!-- duration: 16ms -->
+    <step title="Deleting shutdown sentinel file" date="2025-08-01T18:39:27.795" SemaphoreCount="8" /><!-- duration: 31ms -->
+    <step title="Starting FetchDeploy" date="2025-08-01T18:39:27.841" /><!-- duration: 16ms -->
+    <step title="Attempting to fetch target branch HEAD" date="2025-08-01T18:39:27.888" /><!-- duration: 16ms -->
+    <step title="Updating shutdown sentinel last write time" date="2025-08-01T18:39:27.951" SemaphoreCount="7" /><!-- duration: 31ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; acquired" date="2025-08-01T18:39:27.998" /><!-- duration: 31ms -->
+    <step title="Performing fetch based deployment" date="2025-08-01T18:39:28.096" >
+      <step title="Creating temporary deployment" date="2025-08-01T18:39:28.123" /><!-- duration: 187ms -->
+      <step title="Fetching changes." date="2025-08-01T18:39:28.592" /><!-- duration: 31ms -->
+      <step title="Starting LocalZipHandler" date="2025-08-01T18:39:28.670" /><!-- duration: 16ms -->
+      <step title="Starting LocalZipFetch" date="2025-08-01T18:39:28.701" /><!-- duration: 31ms -->
+      <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\ngh1bpf2.zip (11.46 MB) to C:\local\Temp\zipdeploy\extracted" date="2025-08-01T18:39:28.763" /><!-- duration: 16ms -->
+      <step title="Cleaning up temp folders from previous zip deployments and extracting pushed zip file C:\local\Temp\zipdeploy\ngh1bpf2.zip (11.46 MB) to C:\local\Temp\zipdeploy\extracted" date="2025-08-01T18:39:28.826" >
+        <step title="Extracting 1119 entries to C:\local\Temp\zipdeploy\extracted directory" date="2025-08-01T18:39:28.857" >
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\logs_white_page.zip ..." date="2025-08-01T18:39:28.888" /><!-- duration: 16ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\latest_phishlet_logs.zip ..." date="2025-08-01T18:39:28.935" /><!-- duration: 16ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\package-lock.json ..." date="2025-08-01T18:39:28.982" /><!-- duration: 16ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\evilginx-debug-latest.zip ..." date="2025-08-01T18:39:29.013" /><!-- duration: 16ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\headers2.txt ..." date="2025-08-01T18:39:29.060" /><!-- duration: 31ms -->
+          <step title="Omitting extracting file traces ..." date="2025-08-01T18:39:29.109" /><!-- duration: 30ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\LogFiles\DetailedErrors\ErrorPage000035.htm ..." date="2025-08-01T18:39:30.295" /><!-- duration: 16ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\LogFiles\DetailedErrors\ErrorPage000033.htm ..." date="2025-08-01T18:39:30.326" /><!-- duration: 31ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\LogFiles\DetailedErrors\ErrorPage000036.htm ..." date="2025-08-01T18:39:30.373" /><!-- duration: 31ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\LogFiles\DetailedErrors\ErrorPage000020.htm ..." date="2025-08-01T18:39:30.420" /><!-- duration: 31ms -->
+          <step title="Extracting to C:\local\Temp\zipdeploy\extracted\LogFiles\DetailedErrors\ErrorPage000028.htm ..." date="2025-08-01T18:39:30.466" /><!-- duration: 31ms -->
+        </step><!-- duration: 1656ms -->
+      </step><!-- duration: 1703ms -->
+      <step title="None repository commit" date="2025-08-01T18:39:30.560" >
+        <step title="Commit id: 40d8a2293b954931b9c3b20f34c938eb" date="2025-08-01T18:39:30.576" Message="Created via a push deployment" AuthorName="N/A" AuthorEmail="N/A" /><!-- duration: 31ms -->
+      </step><!-- duration: 63ms -->
+      <step title="Before sending BuildRequestReceived status to /api/updatedeploystatus" date="2025-08-01T18:39:30.654" /><!-- duration: 16ms -->
+      <step title="DeploymentManager.Deploy(id:40d8a2293b954931b9c3b20f34c938eb)" date="2025-08-01T18:39:30.701" >
+        <step title="Collecting changeset information" date="2025-08-01T18:39:30.748" /><!-- duration: 156ms -->
+        <step title="Updating submodules" date="2025-08-01T18:39:30.935" >
+          <step title="Updating submodules." date="2025-08-01T18:39:31.138" /><!-- duration: 16ms -->
+        </step><!-- duration: 250ms -->
+        <step title="Preparing deployment for commit id &apos;40d8a2293b&apos;." date="2025-08-01T18:39:31.373" /><!-- duration: 31ms -->
+        <step title="Determining deployment builder" date="2025-08-01T18:39:31.592" >
+          <step title="UseMSBuild16: True" date="2025-08-01T18:39:31.607" /><!-- duration: 31ms -->
+          <step title="Builder is FunctionBasicBuilder" date="2025-08-01T18:39:31.685" /><!-- duration: 31ms -->
+        </step><!-- duration: 141ms -->
+        <step title="Copying SSH keys" date="2025-08-01T18:39:31.873" /><!-- duration: 31ms -->
+        <step title="Building" date="2025-08-01T18:39:31.920" >
+          <step title="Generating deployment script." date="2025-08-01T18:39:32.138" /><!-- duration: 31ms -->
+          <step title="Generating deployment script" date="2025-08-01T18:39:32.201" >
+            <step title="Using cached version of the deployment script for command: -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --functionApp --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;" date="2025-08-01T18:39:32.279" /><!-- duration: 31ms -->
+            <step title="Using cached version of deployment script (command: &apos;azure -y --no-dot-deployment -r &quot;C:\local\Temp\zipdeploy\extracted&quot; -o &quot;C:\home\site\deployments\tools&quot; --functionApp --sitePath &quot;C:\local\Temp\zipdeploy\extracted&quot;&apos;)." date="2025-08-01T18:39:32.342" /><!-- duration: 16ms -->
+          </step><!-- duration: 203ms -->
+          <step title="Running deployment command..." date="2025-08-01T18:39:32.607" /><!-- duration: 16ms -->
+          <step title="Command: &quot;C:\home\site\deployments\tools\deploy.cmd&quot;" date="2025-08-01T18:39:32.685" /><!-- duration: 31ms -->
+          <step title="Executing external process" date="2025-08-01T18:39:32.763" type="process" path="starter.cmd" arguments="&quot;C:\home\site\deployments\tools\deploy.cmd&quot;" >
+            <step title="Handling function App deployment." date="2025-08-01T18:39:33.781" /><!-- duration: 16ms -->
+            <step title="Not using funcpack because SCM_USE_FUNCPACK is not set to 1" date="2025-08-01T18:39:33.859" /><!-- duration: 16ms -->
+            <step title="Installing function extensions from nuget" date="2025-08-01T18:39:33.937" /><!-- duration: 31ms -->
+            <step title="Creating app_offline.htm" date="2025-08-01T18:39:37.910" /><!-- duration: 31ms -->
+            <step title="KuduSync.NET from: &apos;C:\local\Temp\zipdeploy\extracted&apos; to: &apos;C:\home\site\wwwroot&apos;" date="2025-08-01T18:39:38.019" /><!-- duration: 31ms -->
+            <step title="Copying file: &apos;package-lock.json&apos;" date="2025-08-01T18:39:38.129" /><!-- duration: 16ms -->
+            <step title="Copying file: &apos;package.json&apos;" date="2025-08-01T18:39:38.222" /><!-- duration: 31ms -->
+            <step title="Copying file: &apos;node_modules\.package-lock.json&apos;" date="2025-08-01T18:39:38.332" /><!-- duration: 31ms -->
+            <step title="Deleting file: &apos;src\functions\phishing\function.json&apos;" date="2025-08-01T18:39:38.425" /><!-- duration: 16ms -->
+>
+            <step title="npm warn config production Use `--omit=dev` instead." date="2025-08-01T18:39:38.457" /><!-- duration: 31ms -->
+>
+            <step title="Deleting directory: &apos;src\functions\phishing&apos;" date="2025-08-01T18:39:38.504" /><!-- duration: 16ms -->
+            <step title="Deleting file: &apos;src\functions\devicecode.js&apos;" date="2025-08-01T18:39:38.597" /><!-- duration: 16ms -->
+            <step title="Deleting file: &apos;src\functions\oauth.js&apos;" date="2025-08-01T18:39:38.800" /><!-- duration: 16ms -->
+            <step title="Deleting file: &apos;src\functions\proxy.js&apos;" date="2025-08-01T18:39:38.879" /><!-- duration: 16ms -->
+            <step title="Copying file: &apos;src\functions\callback\function.json&apos;" date="2025-08-01T18:39:38.972" /><!-- duration: 16ms -->
+            <step title="Copying file: &apos;src\functions\callback\index.js&apos;" date="2025-08-01T18:39:39.050" /><!-- duration: 16ms -->
+            <step title="Copying file: &apos;src\functions\devicecode\function.json&apos;" date="2025-08-01T18:39:39.144" /><!-- duration: 16ms -->
+            <step title="Copying file: &apos;src\functions\devicecode\index.js&apos;" date="2025-08-01T18:39:39.238" /><!-- duration: 16ms -->
+            <step title="Copying file: &apos;src\functions\oauth\function.json&apos;" date="2025-08-01T18:39:39.316" /><!-- duration: 31ms -->
+            <step title="Copying file: &apos;src\functions\oauth\index.js&apos;" date="2025-08-01T18:39:39.394" /><!-- duration: 31ms -->
+            <step title="Copying file: &apos;src\functions\proxy\function.json&apos;" date="2025-08-01T18:39:39.472" /><!-- duration: 31ms -->
+            <step title="Copying file: &apos;src\functions\proxy\index.js&apos;" date="2025-08-01T18:39:39.566" /><!-- duration: 16ms -->
+            <step title="Deleting app_offline.htm" date="2025-08-01T18:39:39.644" /><!-- duration: 16ms -->
+            <step title="Restoring npm packages in &quot;C:\home\site\wwwroot&quot;" date="2025-08-01T18:39:39.722" /><!-- duration: 16ms -->
+            <step title="npm notice" date="2025-08-01T18:39:50.575" /><!-- duration: 16ms -->
+"added 3 packages, removed 26 packages, changed 1 package, and audited 6 packages in 12s" date="2025-08-01T18:39:50.590" /><!-- duration: 16ms -->
+            <step title="npm notice New major version of npm available! 10.8.2 -&gt; 11.5.2" date="2025-08-01T18:39:50.669" /><!-- duration: 16ms -->
+            <step title="found 0 vulnerabilities" date="2025-08-01T18:39:50.731" >
+            <step title="npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.5.2" date="2025-08-01T18:39:50.762" /><!-- duration: 31ms -->
+/><!-- duration: 16ms -->
+            <step title="npm notice To update run: npm install -g npm@11.5.2" date="2025-08-01T18:39:50.840" /><!-- duration: 16ms -->
+            <step title="npm notice" date="2025-08-01T18:39:50.934" /><!-- duration: 31ms -->
+            <step title="npm warn config production Use `--omit=dev` instead." date="2025-08-01T18:39:51.059" /><!-- duration: 16ms -->
+            <step title="up to date, audited 29 packages in 965ms" date="2025-08-01T18:39:52.018" /><!-- duration: 18ms -->
+            <step title="6 packages are looking for funding" date="2025-08-01T18:39:52.145" /><!-- duration: 31ms -->
+            <step title="  run `npm fund` for details" date="2025-08-01T18:39:52.239" /><!-- duration: 31ms -->
+            <step title="found 0 vulnerabilities" date="2025-08-01T18:39:52.380" /><!-- duration: 31ms -->
+            <step title="Finished successfully." date="2025-08-01T18:39:52.489" /><!-- duration: 16ms -->
+          </step><!-- duration: 19788ms -->
+          <step title="Running post deployment command(s)..." date="2025-08-01T18:39:52.848" /><!-- duration: 16ms -->
+          <step title="Triggering recycle (preview mode disabled)." date="2025-08-01T18:39:53.083" /><!-- duration: 16ms -->
+          <step title="Ignoring FS watcher based recycle request as this is a classic Windows app." date="2025-08-01T18:39:53.130" /><!-- duration: 31ms -->
+          <step title="Deployment successful. DEPLOYMENTINFO: deploymentPath = Functions App ZipDeploy. Extract zip. Remote build. , deployer = ZipDeploy, os = windows, sku = Dynamic, language = node, siteName = aitm-func-1753463791, slotName = Production, siteHostName = aitm-func-1753463791.azurewebsites.net, deploymentStatus = Success" date="2025-08-01T18:39:53.348" /><!-- duration: 16ms -->
+          <step title="Purge deployment items" date="2025-08-01T18:39:54.052" >
+            <step title="Remove 131896f9c, Success, received at 8/1/2025 5:49:11 PM" date="2025-08-01T18:39:54.380" /><!-- duration: 16ms -->
+          </step><!-- duration: 359ms -->
+        </step><!-- duration: 22601ms -->
+      </step><!-- duration: 23851ms -->
+      <step title="Cleaning up temp files" date="2025-08-01T18:39:54.567" /><!-- duration: 16ms -->
+      <step title="Begin HttpPost https://aitm-func-1753463791.scm.azurewebsites.net/operations/settriggers, x-ms-request-id: 4cbbc307-e27d-4dab-9721-463a66ae1af4" date="2025-08-01T18:39:54.645" /><!-- duration: 31ms -->
+      <step title="End HttpPost, status: OK" date="2025-08-01T18:39:54.895" /><!-- duration: 16ms -->
+      <step title="Scheduling background sync triggers after delay" date="2025-08-01T18:39:54.942" /><!-- duration: 16ms -->
+    </step><!-- duration: 27096ms -->
+    <step title="LockFile &apos;C:\home\site\locks\deployments.lock&apos; released" date="2025-08-01T18:39:55.223" /><!-- duration: 16ms -->
+  </step><!-- duration: 28116ms -->
+  <step title="Outgoing response" date="2025-08-01T18:39:55.333" type="response" statusCode="200" statusText="OK" Server="Microsoft-IIS/10.0" x-ms-request-id="4cbbc307-e27d-4dab-9721-463a66ae1af4" Cache-Control="private" X-AspNet-Version="4.0.30319" /><!-- duration: 16ms -->
+</step><!-- duration: 28696ms -->

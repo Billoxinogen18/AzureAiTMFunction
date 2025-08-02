@@ -1,0 +1,7 @@
+HTTP/2 302 
+date: Fri, 01 Aug 2025 08:36:15 GMT
+location: https://www.office.com/login#
+set-cookie: fpc=AuOGqtfzrQxFpuaoRsJGI3E; expires=Sun, 31-Aug-2025 08:36:15 GMT; path=/; secure; HttpOnly; SameSite=None,esctx=PAQABBwEAAABVrSpeuWamRam2jAF1XRQErhUSR1Tq69PunaB_HFIDHcftVz2v0hsdZBZwktOYiPlVu_F1h5ckR_Wwq8XDBDDD6kYi-kUBBuEXIUiAUgw46q-AE3RV4tRLQpD0qn_JC6HM8fvNjkWCdp0cTbJ3Tevn6HbOMP8Sg3bRY419LyycRnglYoxJOMw0Ms2XN6S-8SYgAA; domain=aitm-func-1753463791.azurewebsites.net; path=/; secure; HttpOnly; SameSite=None,x-ms-gateway-slice=estsfd; path=/; secure; samesite=none; httponly,stsservicecookie=estsfd; path=/; secure; samesite=none; httponly
+content-length: 0
+request-context: appId=
+
