@@ -2,10 +2,10 @@
   "name": "aitm-phishing-server",
   "version": "1.0.0",
   "description": "AiTM Phishing Infrastructure",
-  "main": "working_server.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node working_server.js",
-    "dev": "node working_server.js",
+    "start": "node index.js",
+    "dev": "node index.js",
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
